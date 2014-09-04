@@ -1,11 +1,16 @@
 <?php
-if (!defined('ROOT_PATH')) define('ROOT_PATH', realpath('../../'));
-if (!defined('LIB_PATH')) define('LIB_PATH', ROOT_PATH.'Server/Lib/');
-class configServer
+namespace Server\Config;
+
+/**
+ * app配置.
+ * 
+ * @author chengjun <cgjp123@163.com>
+ */
+class ConfigServer
 {
     public static $server = array(
             'apptest' => array(
-                    'rootPath' => '../../../apptest/init.php',
+                    'rootPath' => "/apptest/init.php",
                     ),
             );
 }
