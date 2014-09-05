@@ -1,5 +1,5 @@
 #海淘系统
-1.NGINX配置:
+###1.NGINX配置:
 <pre>
 server {
         listen 8010;
@@ -22,10 +22,13 @@ server {
 
 </pre>
 
-2.调用说明
+###2.调用说明
 使用http协议
+
 TODO 内部将封装调用方法
+
 测试调用:
+<pre>
 http:://127.0.0.1:8010/apptest/Test/getSomeData?firstarg=first&secondarg=second
 系统内部将自动解析
 应用:apptest
@@ -35,4 +38,5 @@ http:://127.0.0.1:8010/apptest/Test/getSomeData?firstarg=first&secondarg=second
     'firstarg' => first,
     'secondarg' => senond
 )
+</pre>
 返回值会封装成json格式
