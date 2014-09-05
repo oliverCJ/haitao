@@ -7,16 +7,15 @@ server {
         server_name haitao.com 127.0.0.1;
 
         location / {
-                root $filePath;
                 index index.php;
                 try_files $uri /index.php?_r_=$uri&$query_string;
         }
 
         location ~ \.php$ {
-                root $filePath;
                 fastcgi_pass 127.0.0.1:9000;
                 fastcgi_index index.php;
                 include fastcgi_params;
+                fastcgi_param  SCRIPT_FILENAME    $document_root$fastcgi_script_name;
         }
 }
 
