@@ -15,12 +15,12 @@ namespace Model;
 class Base
 {
 
-    protected static $instance;
+    protected static $instance = array();
     
     public static function instance()
     {
         $class = get_called_class();
-        if (isset(self::$instance[$class])) {
+        if (!isset(self::$instance[$class])) {
             self::$instance[$class] = new $class;
         }
         return self::$instance[$class];

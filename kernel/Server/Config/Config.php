@@ -1,16 +1,16 @@
 <?php
-namespace Server\Config;
-
 /**
  * app配置.
  * 
  * @author chengjun <cgjp123@163.com>
  */
-class ConfigServer
-{
-    public static $server = array(
+return array(
+
+   'appServer' => array(
             'apptest' => array(
-                    'rootPath' => "/apptest/init.php",
+                    'rootPath' => "/apptest/init.php",         // [必填] 应用框架入口路径
+                    'recv_timeout' => 1,                    // [必填] 接收超时时间
+                    'process_timeout' => 10,                 // [必填] 处理超时时间
                     ),
-            );
-}
+            ),
+);
