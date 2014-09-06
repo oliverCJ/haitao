@@ -10,8 +10,14 @@ namespace Handler;
 class Test
 {
     public function getSomeData()
-    {
-        $data = \Module\Test::instance()->test();
+    { 	
+        //$data = \Module\Test::instance()->test();
         return $data;
+    }
+    
+    public function getData()
+    {
+    	$arg = func_get_args();
+    	return array('code' => 0, 'msg' => $arg);
     }
 }

@@ -11,11 +11,10 @@ require '../../BootStrap/Autoload.php';
 // 总消耗
 $startTime = microtime(true);
 
+echo 123;exit;
 \BootStrap\Autoload::instance()->setRoot(ROOT_PATH)->init();
 
-try {
-    \Server\Lib\Forward::boot();
-    $endTime = microtime(true);
-} catch (\Exception $e) {
-    \Utility\Output::returnTextVal($e->getMessage());
-}
+\Server\Lib\ErrorHandler::instance();
+
+\Server\Lib\Forward::boot();
+$endTime = microtime(true);
