@@ -36,7 +36,7 @@ class Delivery
         if (isset(self::$configServer[$appName])) {
             // 获取应用路径
             $appPath = self::$configServer[$appName]['rootPath'];
-            $filePatn = BASE_PATH . $appPath;
+            $filePatn = realpath(BASE_PATH . $appPath);
             if (file_exists($filePatn)) {
                 require $filePatn;
             } else {
