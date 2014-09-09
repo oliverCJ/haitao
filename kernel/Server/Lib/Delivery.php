@@ -52,25 +52,26 @@ class Delivery
         $classPath = '\\'. self::$baseServerDir .'\\' . $className;
         if (class_exists($classPath)) {
             $handler = new $classPath;
-            if (method_exists($handler, $functionName)) {
+            $callBack = array($handler, $functionName);
+            if (is_callable($callBack)) {
                 // TODO 记录请求日志.
                 
                 set_time_limit($processTime);
                 // 接口处理消耗.
                 $appProcessStartTime = microtime(true);
-                $r = call_user_func_array(array($handler, $functionName), $param);
+                $r = call_user_func_array($callBack, $param);
                 $appProcessStartTime = microtime(true);
                 if (!$r) {
-                    throw new \Exception('Call wrong service, return false');
+                    throw new \Exception("method $classPath::{$functionName} call failture");
                 }
                 
                 self::dispaly($r);
                 return true;
             } else {
-                throw new \Exception('Call wrong service, no function found');
+                throw new \Exception("method $classPath::{$functionName} not exist");
             }
         } else {
-            throw new \Exception('Call wrong service, no class found');
+            throw new \Exception("class $classPath not exist");
         }
     }
     

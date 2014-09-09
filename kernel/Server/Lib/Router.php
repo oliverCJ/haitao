@@ -54,9 +54,8 @@ class Router
                 
                 unset($_GET[ROUTE_PATH_VAR_NAME]);
                 
-                if (!empty($_GET)) {
-                    $this->param = $_GET;
-                }
+                $this->validCall();
+                $this->param = $_GET;
                 
             }
             $called = true;
@@ -102,6 +101,53 @@ class Router
     protected function getParam()
     {
         return $this->param;
+    }
+    
+    private function validCall()
+    {
+        // 验证参数名
+        if (!empty($_GET)) {
+            foreach ($_GET as $k => $v) {
+                if (strpos($k, 'pa_') !== 0) {
+                    throw new \Exception('The param name wrong');
+                }
+            }
+        }
+        // 验证签名
+        if (isset($_COOKIE['signature'])) {
+            $callURI = substr($_SERVER['REQUEST_URI'], 1);
+            if ($this->encrypt(substr($_SERVER['REQUEST_URI'], 1), \Server\Lib\ServerConfig::get('rpc_secrect_key')) != $_COOKIE['signature']) {
+                throw new \Exception('The signature valid failture');
+            }
+        } else {
+            throw new \Exception('The secrect key valid failture');
+        }
+        // 验证app
+        if (isset($_COOKIE['user']) && isset($_COOKIE['password'])) {
+            $tokenKey = \Server\Config\AppSecrectKey::$tokenKey;
+            if (isset($tokenKey[$this->appName][$_COOKIE['user']])) {
+                if ($this->encrypt($_COOKIE['user'], $tokenKey[$this->appName][$_COOKIE['user']]) != $_COOKIE['password']) {
+                    throw new \Exception('The user valid failture');
+                }
+            } else {
+                throw new \Exception('The user is illegal');
+            }
+        } else {
+            throw new \Exception('missing user secrect info');
+        }
+    }
+    
+    /**
+     * 数据签名.
+     *
+     * @param string $data   待签名的数据.
+     * @param string $secret 私钥.
+     *
+     * @return string
+     */
+    private function encrypt($data, $secret)
+    {
+        return md5($data . '&' . $secret);
     }
 
 }

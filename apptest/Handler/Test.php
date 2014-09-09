@@ -11,18 +11,20 @@ class Test
 {
     public function getSomeData()
     {
-        \RPCClient_apptest_Test::instance()->getData(213, 123);
+        $testData = \RPCClient_apptest_Test::instance()->getData(213, 123);
+        
 //         $ch = curl_init('http://127.0.0.1:8000/apptest/Test/getData?ssd=2');
 //         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 //         $data = curl_exec($ch);
 //         curl_close($ch);
-        $data = \Module\Test::instance()->test();
-        return $data;
+        //$data = \Module\Test::instance()->test();
+        return $testData;
     }
     
-    public function getData()
+    public function getData($t1, $t2)
     {
     	$arg = func_get_args();
-    	return array('code' => 0, 'msg' => $arg);
+    	echo $t1;
+    	return array('code' => 0, 'msg' => $arg, 'cookie' => $_COOKIE);
     }
 }

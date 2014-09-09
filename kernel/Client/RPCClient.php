@@ -1,4 +1,5 @@
 <?php
+namespace Client;
 /**
  * 自动调应用类
  * 配置：
@@ -17,93 +18,127 @@ class RPCClient
 {
 
     protected static $instance = array();
-    protected static $className;
-    protected static $config;
+    protected static $_config;
     
+    protected $rpcClass;
     protected $appName;
-    protected $class;
     protected $host;
     protected $user;
     protected $secrect;
+    protected $returnData;
     
-    protected $functionName;
-    protected $param;
+    protected $executionTimeStart;
+    
+    public static function config(array $config = array())
+    {
+        if (empty($config)) {
+            return self::$_config;
+        }
+        self::$_config = $config;
+    }
     
     public static function instance()
     {
-        self::$className = get_called_class();
-        if (!isset(self::$instance[self::$className])) {
-            self::$instance[self::$className] = new static();
+        $className = get_called_class();
+        $key = $className.'_rpc';
+        if (!isset(self::$instance[$key])) {
+            self::$instance[$key] = new $className();
         }
-        return self::$instance[self::$className];
+        return self::$instance[$key];
     }
     
     private function __construct()
     {
-        if (!isset(self::$config)) {
-            self::$config = \Config\Client::$clientConfig;
+        $config = self::config();
+        if (empty($config) && class_exists('\Config\Client')) {
+            $config = \Config\Client::$clientConfig;
+            self::config($config);
         }
-        if (empty(self::$config)) {
-            throw new \Exception('can not find the configuration for ' . self::$className);
+        if (empty($config)) {
+            throw new \Exception('Missing configuration for ' . self::$className);
         }
-        if (strpos(self::$className, 'RPCClient_')) {
-            $className = substr(self::$className, strpos(self::$className, 'RPCClient_'), -1);
-            $appName = substr($className, 0, strpos($className, '_'));
-            $className = substr($className, -1, strpos($className, '_'));
-            if (!empty($appName)) {
-                if (!isset(self::$config[$appName])) {
-                    throw new \Exception('can not find the configuration for ' . $appName);
+        $className = get_called_class();
+        if (preg_match('/^RPCClient_([A-Za-z0-9]+)_([A-Za-z0-9]+)/', $className, $matches)) {
+            $this->appName = $matches[1];
+            $this->rpcClass = $matches[2];
+            if (!empty($this->appName)) {
+                if (!isset($config[$this->appName])) {
+                    throw new \Exception('can not find the configuration for ' . $this->appName);
                 }
-            $this->init($appName, $className);
+                $this->init($config[$this->appName]);
             }
         }
     }
     
-    protected function init($appName, $className)
+    protected function init(array $config)
     {
-        $this->appName = $appName;
-        $this->class = $className;
-        $this->host = self::$config[$this->appName]['host'];
-        $this->user = self::$config[$this->appName]['user'];
-        $this->secrect = self::$config[$this->appName]['secrect'];
+        $this->host = $config['host'];
+        $this->user = $config['user'];
+        $this->secrect = $config['secrect'];
     }
     
     
-    public function __call($functionName, $param)
+    public function __call($method, $arguments)
     {
-        $this->functionName = $functionName;
-        $this->param = $param;
-        $this->remoteCall();
+        $callUrl = $this->host . $this->appName . '/' . $this->rpcClass . '/' . $method . '/';
+        $secrectUrl = $this->appName . '/' . $this->rpcClass . '/' . $method . '/';
+        $paramString = '?';
+        if (!empty($arguments)) {
+            $paramString .= http_build_query($arguments, 'pa_');
+        }
+        $callUrl .= $paramString;
+        $secrectUrl .= $paramString;
+        $returnData = $this->remoteCall($callUrl, $secrectUrl);
+        return $returnData;
     }
     
-    protected function remoteCall()
-    {
-         $callUrl = $this->host . $this->appName . '/' . $this->class . '/' . $this->functionName . '/';
-         $paramString = '?';
-         if (!empty($this->param)) {
-             $paramString .= http_build_query($this->param, 'app_');
-         }
-         
+    protected function remoteCall($getUrl, $secrectUrl)
+    {echo $secrectUrl;
+        $this->executionTimeStart = microtime(true);
+        $config = self::config();
         $ch = curl_init();
         $curlOption = array(
-                CURLOPT_URL => $callUrl . $paramString,
+                CURLOPT_URL => $getUrl,
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_USERAGENT => 'getapp',
                 CURLOPT_CONNECTTIMEOUT => \Config\Client::$connectTTL,
                 CURLOPT_TIMEOUT => \Config\Client::$connectTTL,
-                CURLOPT_COOKIE => $this->user . '=' . $this->secrect,
+                CURLOPT_COOKIE => 'user=' . $this->user . ',password=' . $this->encrypt($this->user, $this->secrect) . ',signature=' . $this->encrypt($secrectUrl, \Config\Client::$rpc_secrect_key),
                 );
         curl_setopt_array($ch, $curlOption);
-        $this->returnData = curl_exec($ch);
-        if ($this->returnData === false) throw new \Exception('connection service ' . $this->host . 'failure');
-        return true;
+        $returnData = curl_exec($ch);
+        curl_close($ch);
+        $executTime = $this->executionTime();
+        // TODO 记录日志
+        
+        if ($returnData === false) throw new \Exception('connection service ' . $this->host . ' failure');
+        return $returnData;
+    }
+    
+    private function executionTime()
+    {
+        return microtime(true) - $this->executionTimeStart;
+    }
+    
+    /**
+     * 请求数据签名.
+     *
+     * @param string $data   待签名的数据.
+     * @param string $secret 私钥.
+     *
+     * @return string
+     */
+    private function encrypt($data, $secret)
+    {
+        return md5($data . '&' . $secret);
     }
 }
 
 spl_autoload_register(
 function($name){
-    if(substr($name, 0, 10) == 'RPCClient_') {
-        eval(sprintf("class %s extends RPCClient {}", $name));
+    if(strpos($name, 'RPCClient_') !== 0) {
+        return false;
     }
+    eval(sprintf("class %s extends \Client\RPCClient {}", $name));
 }
 );
