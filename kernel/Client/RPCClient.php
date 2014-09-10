@@ -26,6 +26,7 @@ class RPCClient
     protected $user;
     protected $secrect;
     protected $returnData;
+    protected $ttl;
     
     protected $executionTimeStart;
     
@@ -35,27 +36,33 @@ class RPCClient
             return self::$_config;
         }
         self::$_config = $config;
+        return self::$_config;
     }
     
-    public static function instance()
+    public static function instance($config = array())
     {
         $className = get_called_class();
-        $key = $className.'_rpc';
+        $key = $className.'_';
+        if (empty($config)) {
+            $key .= 'rpc';
+        } else {
+            $key .= md5(serialize($config));
+        }
         if (!isset(self::$instance[$key])) {
-            self::$instance[$key] = new $className();
+            self::$instance[$key] = new $className($config);
         }
         return self::$instance[$key];
     }
     
-    private function __construct()
+    private function __construct($config = array())
     {
-        $config = self::config();
+       $config = empty($config) ? self::config() : self::config($config) ;
+       
         if (empty($config) && class_exists('\Config\Client')) {
-            $config = \Config\Client::$clientConfig;
-            self::config($config);
+            $config = self::config((array) new \Config\Client);
         }
         if (empty($config)) {
-            throw new \Exception('Missing configuration for ' . self::$className);
+            throw new \Exception('Missing configuration');
         }
         $className = get_called_class();
         if (preg_match('/^RPCClient_([A-Za-z0-9]+)_([A-Za-z0-9]+)/', $className, $matches)) {
@@ -89,30 +96,40 @@ class RPCClient
         $callUrl .= $paramString;
         $secrectUrl .= $paramString;
         $returnData = $this->remoteCall($callUrl, $secrectUrl);
+        if (!empty($returnData)) $returnData = json_decode($returnData, true);
         return $returnData;
     }
     
     protected function remoteCall($getUrl, $secrectUrl)
-    {echo $secrectUrl;
+    {
         $this->executionTimeStart = microtime(true);
         $config = self::config();
+        $header_arr = array(
+            'Authorization: Basic ' . base64_encode($this->user . ':' . $this->encrypt($this->user, $this->secrect)),
+            'Accept: application/xhtml+xml; application/json; charset=UTF-8',
+            'Content-Type: application/html; charset=UTF-8',
+        );
         $ch = curl_init();
         $curlOption = array(
                 CURLOPT_URL => $getUrl,
+                CURLOPT_HTTPHEADER => $header_arr,
+                CURLOPT_HEADER => false,
+                CURLOPT_ENCODING => 'gzip',
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_USERAGENT => 'getapp',
-                CURLOPT_CONNECTTIMEOUT => \Config\Client::$connectTTL,
-                CURLOPT_TIMEOUT => \Config\Client::$connectTTL,
-                CURLOPT_COOKIE => 'user=' . $this->user . ',password=' . $this->encrypt($this->user, $this->secrect) . ',signature=' . $this->encrypt($secrectUrl, \Config\Client::$rpc_secrect_key),
+                CURLOPT_CONNECTTIMEOUT => $config['connectTTL'],
+                CURLOPT_TIMEOUT => $config['connectTTL'],
+                CURLOPT_COOKIE => 'user=' . $this->user . ';password=' . $this->encrypt($this->user, $this->secrect) . ';signature=' . $this->encrypt($secrectUrl, $config['rpc_secrect_key']),
+                CURLOPT_SSL_VERIFYPEER => false,
                 );
         curl_setopt_array($ch, $curlOption);
-        $returnData = curl_exec($ch);
+        $response = curl_exec($ch);
         curl_close($ch);
         $executTime = $this->executionTime();
         // TODO 记录日志
         
-        if ($returnData === false) throw new \Exception('connection service ' . $this->host . ' failure');
-        return $returnData;
+        if ($response === false) throw new \Exception('connection service ' . $this->host . ' failure');
+        return $response;
     }
     
     private function executionTime()

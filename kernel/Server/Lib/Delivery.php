@@ -59,7 +59,11 @@ class Delivery
                 set_time_limit($processTime);
                 // 接口处理消耗.
                 $appProcessStartTime = microtime(true);
-                $r = call_user_func_array($callBack, $param);
+                try {
+                    $r = call_user_func_array($callBack, $param);
+                } catch (\Exception $e) {
+                    \Server\Lib\ErrorHandler::log_exception($e);
+                }
                 $appProcessStartTime = microtime(true);
                 if (!$r) {
                     throw new \Exception("method $classPath::{$functionName} call failture");
