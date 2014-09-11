@@ -89,30 +89,39 @@ class RPCClient
     {
         $callUrl = $this->host . $this->appName . '/' . $this->rpcClass . '/' . $method . '/';
         $secrectUrl = $this->appName . '/' . $this->rpcClass . '/' . $method . '/';
-        $paramString = '?';
-        if (!empty($arguments)) {
-            $paramString .= http_build_query($arguments, 'pa_');
-        }
-        $callUrl .= $paramString;
-        $secrectUrl .= $paramString;
-        $returnData = $this->remoteCall($callUrl, $secrectUrl);
+        //$paramString = '?';
+        //if (!empty($arguments)) {
+        //    $paramString .= http_build_query($arguments, 'pa_');
+        //}
+        //$callUrl .= $paramString;
+        //$secrectUrl .= $paramString;
+        $returnData = $this->remoteCall($callUrl, $secrectUrl, $arguments);
         if (!empty($returnData)) $returnData = json_decode($returnData, true);
         return $returnData;
     }
     
-    protected function remoteCall($getUrl, $secrectUrl)
+    protected function remoteCall($getUrl, $secrectUrl, $arguments)
     {
+        $postFieldsString = '';
+        if (!empty($arguments)) {
+            $postFields = array(
+                    'param' => json_encode($arguments),
+            );
+            $postFieldsString = http_build_query($postFields);
+        }
         $this->executionTimeStart = microtime(true);
         $config = self::config();
-        $header_arr = array(
-            'Authorization: Basic ' . base64_encode($this->user . ':' . $this->encrypt($this->user, $this->secrect)),
+        $requestHeaders = array(
             'Accept: application/xhtml+xml; application/json; charset=UTF-8',
-            'Content-Type: application/html; charset=UTF-8',
+            'Content-Type:application/x-www-form-urlencoded; charset=utf-8',
+            'Connection: close',
         );
         $ch = curl_init();
         $curlOption = array(
                 CURLOPT_URL => $getUrl,
-                CURLOPT_HTTPHEADER => $header_arr,
+                CURLOPT_POST => true,
+                CURLOPT_POSTFIELDS => $postFieldsString,
+                CURLOPT_HTTPHEADER => $requestHeaders,
                 CURLOPT_HEADER => false,
                 CURLOPT_ENCODING => 'gzip',
                 CURLOPT_RETURNTRANSFER => true,
@@ -121,6 +130,7 @@ class RPCClient
                 CURLOPT_TIMEOUT => $config['connectTTL'],
                 CURLOPT_COOKIE => 'user=' . $this->user . ';password=' . $this->encrypt($this->user, $this->secrect) . ';signature=' . $this->encrypt($secrectUrl, $config['rpc_secrect_key']),
                 CURLOPT_SSL_VERIFYPEER => false,
+                CURLOPT_FORBID_REUSE => true,
                 );
         curl_setopt_array($ch, $curlOption);
         $response = curl_exec($ch);

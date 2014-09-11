@@ -53,10 +53,10 @@ class Router
                 }
                 
                 unset($_GET[ROUTE_PATH_VAR_NAME]);
-                
                 $this->validCall();
-                $this->param = $_GET;
-                
+                if (!empty($_POST) && isset($_POST['param'])) {
+                    $this->param = json_decode($_POST['param'], true);
+                }
             }
             $called = true;
         }
@@ -105,13 +105,9 @@ class Router
     
     private function validCall()
     {
-        // 验证参数名
-        if (!empty($_GET)) {
-            foreach ($_GET as $k => $v) {
-                if (strpos($k, 'pa_') !== 0) {
-                    throw new \Exception('The param name wrong');
-                }
-            }
+        // 验证头
+        if (empty($_SERVER['HTTP_USER_AGENT']) || $_SERVER['HTTP_USER_AGENT'] != 'getapp') {
+            throw new \Exception('The user agent valid failture');
         }
         // 验证签名
         if (isset($_COOKIE['signature'])) {

@@ -9,7 +9,7 @@ namespace Handler;
  */
 class Test
 {
-    public function getSomeData()
+    public function getSomeData($s)
     {
         //$testData = \RPCClient_apptest_Test::instance()->getData(213, 123);
         

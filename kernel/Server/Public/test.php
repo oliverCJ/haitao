@@ -62,7 +62,21 @@ class Test
             }
             $param = array();
             if (!empty($requestParam['param'])) {
+                if(get_magic_quotes_gpc() && is_array($requestParam['param']))
+                {
+                    foreach($requestParam['param'] as $index => $value)
+                    {
+                        $requestParam['param'][$index] = stripslashes(trim($value));
+                    }
+                }
                 $param = $requestParam['param'];
+                if ($param) {
+                    foreach($param as $index => $value) {
+                        if (stripos($value, 'array') === 0 || stripos($value, 'true') === 0 || stripos($value, 'false') === 0 || stripos($value, 'null') === 0 || stripos($value, 'object') === 0) {
+                            eval('$param['.$index.']='.$value.';');
+                        }
+                    }
+                }
             }
             
             $call = '\RPCClient_'.$appName.'_'.$class;
@@ -102,9 +116,6 @@ class Test
 </head>
 <body>
 HTML;
-        if ($getError) {
-            $html .= '<b>'.$error.'</b><br />';
-        }
         $html .= '<b>接口测试</b><br />';
         $html .= '<form action="" method="post">';
         $html .= '<table>';
@@ -131,6 +142,9 @@ HTML;
         $html .= '</tr></tfoot>';
         $html .= '</table>';
         $html .= '</form>';
+        if ($getError) {
+            $html .= '<b>'.$error.'</b><br />';
+        }
         if ($response) {
             $html .= '<pre>'.var_export($response, true).'</pre>';
         }
