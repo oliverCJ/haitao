@@ -24,6 +24,8 @@ class Test
     
     public $callParam;
     
+    public $executTime;
+    
     protected static $config = array(
                     array(
                     'rpc_secrect_key' => '769af463a39f077a0340a189e9c1ec28',
@@ -84,6 +86,7 @@ class Test
                 $client = call_user_func_array(array($call, 'instance'), self::$config);
                 $response = call_user_func_array(array($client, $function), $param);
                 if (!empty($response)) {
+                    $this->executTime = call_user_func_array(array($client, 'getExectionTime'), array());
                     return $response;
                 } else {
                     throw new \Exception('connect failure');
@@ -134,11 +137,21 @@ HTML;
         $html .= '</tr><tr>';
         $html .= '<td>方法:</td>';
         $html .= '<td><input name="function" type="text" value="'.$function.'" style="width:400px"/></td>';
-        $html .= '</tr><tbody id="parames"><tr>';
-        $html .= '<td>参数:</td>';
-        $html .= '<td><input name="param[]" type="text" value="" placeholder="数组使用array(..)格式,bool直接使用true/false,null直接写null" style="width:400px"/> <a href="javascript:void(0)" onclick="delParam(this)">删除本行</a></td>';
-        $html .= '</tr></tbody><tfoot><tr><td colspan="2"><a href="javascript:void(0)" onclick="addParam()">添加参数</a></td></tr><tr>';
-        $html .= '<td colspan="2"><input type="submit" value="提交" /></td>';
+        if ($response && !empty($this->requestParam['param'])) {
+            $html .= '</tr><tbody id="parames">';
+            foreach ($this->requestParam['param'] as $v) {
+                $html .= '<tr><td>参数:</td>';
+                $html .= '<td><input name="param[]" type="text" value="' . $v . '" style="width:400px"/> <a href="javascript:void(0)" onclick="delParam(this)">删除本行</a></td>';
+                $html .= '</tr>';
+            }
+        } else {
+            $html .= '</tr><tbody id="parames"><tr>';
+            $html .= '<td>参数:</td>';
+            $html .= '<td><input name="param[]" type="text" value="" placeholder="数组使用array(..)格式,bool直接使用true/false,null直接写null" style="width:400px"/> <a href="javascript:void(0)" onclick="delParam(this)">删除本行</a></td>';
+            $html .= '</tr>';
+        }
+        $html .= '</tbody><tfoot><tr><td colspan="2"><a href="javascript:void(0)" onclick="addParam()">添加参数</a></td></tr>';
+        $html .= '<tr><td colspan="2"><input type="submit" value="提交" /></td>';
         $html .= '</tr></tfoot>';
         $html .= '</table>';
         $html .= '</form>';
@@ -147,6 +160,7 @@ HTML;
         }
         if ($response) {
             $html .= '<pre>'.var_export($response, true).'</pre>';
+            $html .= '<table><tr><td>time cost: ' . $this->executTime . '</td></tr></table>';
         }
         
         $html .= <<<HTML

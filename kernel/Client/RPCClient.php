@@ -96,7 +96,7 @@ class RPCClient
         //$callUrl .= $paramString;
         //$secrectUrl .= $paramString;
         $returnData = $this->remoteCall($callUrl, $secrectUrl, $arguments);
-        if (!empty($returnData)) $returnData = json_decode($returnData, true);
+        //if (!empty($returnData)) $returnData = json_decode($returnData, true);
         return $returnData;
     }
     
@@ -137,9 +137,13 @@ class RPCClient
         curl_close($ch);
         $executTime = $this->executionTime();
         // TODO 记录日志
-        
         if ($response === false) throw new \Exception('connection service ' . $this->host . ' failure');
         return $response;
+    }
+    
+    public function getExectionTime()
+    {
+        return $this->executionTime();
     }
     
     private function executionTime()
