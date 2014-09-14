@@ -3,19 +3,45 @@ namespace Model;
 
 class Test extends \Model\Base
 {
+    const TABLE_NAME = 'test';
     
-    const DB_NAME = 'default';
-    const TABLE_NAME = 'giftcard_invalid_records';
+    protected $fields = array(
+            'id',
+            'name',
+            );
+    
+    public function getFields()
+    {
+        return $this->fields;
+    }
+    
+    protected function getDb($master = false)
+    {
+        return $master ?  \Db\Connection::instance()->write() : \Db\Connection::instance()->read();
+    }
     
     public static function instance()
     {
         return parent::instance();
     }
     
-    public function Test(){
-        \Db\Connection::instance()->write();
-        var_dump(\Db\Connection::instance()->write());
-        var_dump(\Db\Connection::instance()->write());
-        return array('code' => 0, 'msg' => 'the data');
+    public function testShowTable()
+    {
+        $this->getDb()->setAllowRealExec(true);
+        $sql = 'show create table ' . self::TABLE_NAME;
+        return $this->getDb()->queryExe($sql);
+    }
+    
+    public function test(){
+        $fields = implode(',', array_map(array($this->getDb(),'quoteObj'), $this->getFields()));
+        return $this ->getDb()->select($fields)->from(self::TABLE_NAME)->queryAll();
+    }
+    
+    public function testInsert(){
+        
+        $cond = array (
+                        'name' => 'oiver'
+        );
+        return $this->getDb(true)->insert(self::TABLE_NAME, $cond);
     }
 }

@@ -11,7 +11,7 @@ class Db
             'default' => array(
                     'dsn' => 'mysql:host=127.0.0.1;port=3306;dbname=test',
                     'user' => 'root',
-                    'password' => '123456',
+                    'password' => 'root',
                     'confirm_link' => true,//required to set to TRUE in daemons.
                     'options'  => array(
                             \PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES \'utf8\'',
@@ -21,10 +21,10 @@ class Db
         );
     
     public $write = array(
-            'defaults' => array(
+            'default' => array(
                     'dsn' => 'mysql:host=127.0.0.1;port=3306;dbname=test',
                     'user' => 'root',
-                    'password' => '123456',
+                    'password' => 'root',
                     'confirm_link' => true,//required to set to TRUE in daemons.
                     'options'  => array(
                             \PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES \'utf8\'',

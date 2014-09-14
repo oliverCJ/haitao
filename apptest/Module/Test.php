@@ -17,6 +17,8 @@ class Test extends \Module\ModuleBase
     
     public function test()
     {
+        //\Model\Test::instance()->testInsert();
+        print_r(\Model\Test::instance()->testShowTable());
         $data = \Model\Test::instance()->test();
         return $data;
     }
