@@ -18,6 +18,8 @@ class Test
 //         $data = curl_exec($ch);
 //         curl_close($ch);
         $data = \Module\Test::instance()->test();
+        $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
+        print_r($trace);
         return $data;
     }
     

@@ -250,6 +250,29 @@ class Connection
         return !!$re;
     }
     
+    public function replace($table, $params)
+    {
+        $columns = '';
+        $values = '';
+        foreach ($params as $column => $value) {
+            $columns .= $this->quoteObj($column) . ',';
+            $values .= is_null($value) ? 'NULL' : $this->quote($value) . ',';
+        }
+        $columns = substr($columns, 0, strlen($columns) - 1);
+        $values = substr($values, 0, strlen($values) - 1);
+        
+        $table = $this->quoteObj($table);
+        $sql = 'REPLACE INTO ' . $table . ' (' . $columns . ') ' . 'VALUES' . ' (' . $values . ')';
+        $re = $this->execute($sql);
+        if ($re === false)
+        {
+            return false;
+        }
+        $id = $this->connect->lastInsertId();
+        if ($id) return $id;
+        return $re;
+    }
+    
     /**
      * 更新数据操作.
      * 
@@ -466,6 +489,7 @@ class Connection
                 return $this->cacbePerQueries[$cacheKey];
             }
             // TODO 日志
+            \Log\Handler::instance('db')->log();
             $this->queryBeginTime = microtime(true);
             $this->memoryUsageBeforeFetch = memory_get_usage();
             $this->lastStmt = $this->connect->query($this->lastSql);
@@ -776,6 +800,54 @@ class Connection
             }
             return $data;
         }
+    }
+    
+    public function logQuery($sql)
+    {
+        if (isset(self::$config['DEBUG']) && isset(self::$config['DEBUG_LEVEL']))
+        {
+            $logString = 'Begin:' . date('Y-m-d H:i:s', $this->queryBeginTime) . "\n";
+            $logString .= 'SQL:' . $sql . "\n";
+            switch (self::$config['DEBUG_LEVEL']) {
+                case 2 :
+                    $tempE = new \Exception\DbException();
+                    $logString .= "Trace:\n" . $tempE->getTraceAsString() . "\n";
+                    break;
+                case 1 :
+                default :
+                    break;
+            }
+            $logString .= 'END:' . date('Y-m-d H:i:s', $this->queryEndTime) . '  Total:' . sprintf('%.3f', (($this->queryEndTime - $this->queryBeginTime) * 1000)) . 'ms' . "\n";
+            \Log\Handler::instance('db')->log($logString);
+        }
+    }
+    
+    public function getExternalCaller()
+    {
+        $trace = debug_backtrace();
+        $caller = array('class' => '', 'method' => '', 'file' => '', 'line' => '');
+        $k = 0;
+        foreach ($trace as $k => $line)
+        {
+            if (isset($line['class'])) {
+                $caller['class'] = $line['class'];
+                $caller['method'] = $line['function'];
+            } elseif (isset($line['function'])) {
+                $caller['method'] = $line['function'];
+            } else {
+                $caller['class'] = 'main';
+            }
+            break;
+        }
+        if (empty($caller['method'])) {
+            $caller['method'] = 'main';
+        }
+        while (!isset($line['file']) && $k > 0) {
+            $line = $trace[--$k];
+        }
+        $caller['file'] = $line['file'];
+        $caller['line'] = $line['line'];
+        return $caller;
     }
 
 }
