@@ -17,6 +17,7 @@ class Test
 //         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 //         $data = curl_exec($ch);
 //         curl_close($ch);
+throw new \Exception\AppException('sdsdsdsdsfsdfsdf');
         $data = \Module\Test::instance()->test();
         $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
         print_r($trace);
