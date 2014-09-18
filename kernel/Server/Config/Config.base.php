@@ -5,4 +5,3 @@ if (!defined('LIB_PATH')) define('LIB_PATH', ROOT_PATH.'Server/Lib/');
 
 
 if (!defined('DEBUG')) define('DEBUG', true);
-if (!defined('DEBUG_APP')) define('DEBUG_APP', true);
