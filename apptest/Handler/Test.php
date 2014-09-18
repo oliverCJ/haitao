@@ -11,6 +11,7 @@ class Test
 {
     public function getSomeData($s)
     {
+//         \Utility\Output::h_print_r('test');
         $data = \RPCClient_apptest_Test::instance()->getData(213, 123);
 
         //         $ch = curl_init('http://127.0.0.1:8000/apptest/Test/getData?ssd=2');
