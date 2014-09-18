@@ -96,7 +96,7 @@ class RPCClient
         //$callUrl .= $paramString;
         //$secrectUrl .= $paramString;
         $returnData = $this->remoteCall($callUrl, $secrectUrl, $arguments);
-        //if (!empty($returnData)) $returnData = json_decode($returnData, true);
+        if (!empty($returnData)) $returnData = json_decode($returnData, true);
         return $returnData;
     }
     
