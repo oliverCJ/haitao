@@ -83,9 +83,27 @@ class ErrorHandler {
         } else {
             // TODO 记录日志
             $message = '[' . date('Y-m-d H:i:s') . "] ErrorType: " . self::$errorType . "; exceptionType: " . get_class( $e ) . "; Message: {$e->getMessage()}; File: {$e->getFile()}; Line: {$e->getLine()};";
-            if (!is_dir('/tmp/logs')) @mkdir('/tmp/logs', 0777);
-            if (!is_dir('/tmp/logs/haitao')) @mkdir('/tmp/logs/haitao', 0777);
-            file_put_contents( "/tmp/logs/haitao/exceptions.log", $message . PHP_EOL, FILE_APPEND );
+            error_log($message);
+        }
+        exit();
+    }
+    
+    public static function log_app_exception($app, $e)
+    {
+        if (DEBUG_APP) {
+            $array = array(
+                    'ErrorType' => self::$errorType,
+                    'exceptionType' => get_class( $e ),
+                    'Message' => $e->getMessage(),
+                    'File' => $e->getFile(),
+                    'Line' => $e->getLine(),
+                    'code' => $e->getCode()
+            );
+            \Utility\Output::returnJsonVal($array);
+        } else {
+            // TODO 记录日志
+            $message = '[' . date('Y-m-d H:i:s') . "] ErrorType: " . self::$errorType . "; exceptionType: " . get_class( $e ) . "; Message: {$e->getMessage()}; File: {$e->getFile()}; Line: {$e->getLine()};";
+            file_put_contents('/tmp/logs/haitao/' . $app . '.log', $data);
         }
         exit();
     }
