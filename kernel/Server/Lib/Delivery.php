@@ -62,7 +62,7 @@ class Delivery
                 try {
                     $r = call_user_func_array($callBack, $param);
                 } catch (\Exception $e) {
-                    \Server\Lib\ErrorHandler::log_exception($e);
+                    \Server\Lib\ErrorHandler::log_app_exception($appName, $e);
                 }
                 $appProcessStartTime = microtime(true);
                 if (!$r) {

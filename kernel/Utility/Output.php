@@ -19,8 +19,8 @@ class Output
         echo $msg;
     }
     
-    public static function returnWelcome()
-    {
-        echo 'welcome to service';
+    public static function h_print_r($msg = ''){
+        print_r(json_encode($msg));
+        exit;
     }
 }

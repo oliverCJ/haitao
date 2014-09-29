@@ -489,7 +489,7 @@ class Connection
                 return $this->cacbePerQueries[$cacheKey];
             }
             // TODO 日志
-            \Log\Handler::instance('db')->log();
+            // \Log\Handler::instance('db')->log();
             $this->queryBeginTime = microtime(true);
             $this->memoryUsageBeforeFetch = memory_get_usage();
             $this->lastStmt = $this->connect->query($this->lastSql);

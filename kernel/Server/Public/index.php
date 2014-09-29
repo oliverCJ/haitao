@@ -16,5 +16,7 @@ $startTime = microtime(true);
 
 \Server\Lib\ErrorHandler::instance();
 
+date_default_timezone_set('PRC');
+
 \Server\Lib\Forward::boot();
 $endTime = microtime(true);

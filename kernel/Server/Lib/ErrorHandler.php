@@ -83,7 +83,7 @@ class ErrorHandler {
         } else {
             // TODO 记录日志
             $message = '[' . date('Y-m-d H:i:s') . "] ErrorType: " . self::$errorType . "; exceptionType: " . get_class( $e ) . "; Message: {$e->getMessage()}; File: {$e->getFile()}; Line: {$e->getLine()};";
-            //file_put_contents( "/tmp/logs/exceptions.log", $message . PHP_EOL, FILE_APPEND );
+            error_log($message);
         }
         exit();
     }
