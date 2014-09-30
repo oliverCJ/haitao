@@ -66,6 +66,12 @@ abstract class SocketWorker extends AbstractWorker
     protected $maxRecvBufferSize = 10485760;
     
     /**
+     * 处理超时时间.毫秒
+     * @var int
+     */
+    protected $processTimeout = 30000;
+    
+    /**
      *  客户端连接的写buffer
      * @var array
      */
@@ -197,6 +203,11 @@ abstract class SocketWorker extends AbstractWorker
             $this->maxSendBufferSize = $max_send_buffer_size;
         }
         
+        // 处理超时时间
+        if (($process_timeout = Lib\Config::get($this->workerName . '.process_timeout')) && $process_timeout > 0) {
+            $this->processTimeout = $process_timeout;
+        }
+        
         // worker启动时间
         $this->statusInfo['start_time'] = time();
         
@@ -286,7 +297,7 @@ abstract class SocketWorker extends AbstractWorker
     }
     
     /**
-     * 设置worker的事件轮询库的名称
+     * 设置worker的事件轮询库
      * @param string 
      * @return void
      */
@@ -404,6 +415,9 @@ abstract class SocketWorker extends AbstractWorker
         // 包接收完毕
         elseif(0 === (int)$remain_len)
         {
+            // 逻辑超时处理，逻辑只能执行xxs,xxs后超时放弃当前请求处理下一个请求,发送SIGALRM信号给进程
+            pcntl_alarm(ceil($this->processTimeout/1000));
+            
             // 执行处理
             try{
                 // 接受请求数加1

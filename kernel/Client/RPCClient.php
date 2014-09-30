@@ -65,7 +65,7 @@ class RPCClient
             throw new \Exception('Missing configuration');
         }
         $className = get_called_class();
-        if (preg_match('/^RPCClient_([A-Za-z0-9]+)_([A-Za-z0-9]+)/', $className, $matches)) {
+        if (preg_match('/^CURLClient_([A-Za-z0-9]+)_([A-Za-z0-9]+)/', $className, $matches)) {
             $this->appName = $matches[1];
             $this->rpcClass = $matches[2];
             if (!empty($this->appName)) {
@@ -167,7 +167,7 @@ class RPCClient
 
 spl_autoload_register(
 function($name){
-    if(strpos($name, 'RPCClient_') !== 0) {
+    if(strpos($name, 'CURLClient_') !== 0) {
         return false;
     }
     eval(sprintf("class %s extends \Client\RPCClient {}", $name));

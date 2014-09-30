@@ -7,7 +7,7 @@
 header("Content-type:text/html;charset=utf-8");
 require '../Config/Config.base.php';
 require '../../BootStrap/Autoload.php';
-require_once('../../Client/RPCClient.php');
+require_once('../../Client/RPCSocketClient.php');
 \BootStrap\Autoload::instance()->setRoot(ROOT_PATH)->init();
 //\Server\Lib\ErrorHandler::instance();
 $testHandler = new Test;
@@ -30,8 +30,9 @@ class Test
                     array(
                     'rpc_secrect_key' => '769af463a39f077a0340a189e9c1ec28',
                     'connectTTL' => 30,
+                    'compressor' => null,
                     'apptest' => array(
-                            'host' => 'http://127.0.0.1:8000/',
+                            'host' => 'tcp://127.0.0.1:9527/',
                             'user' => 'test',
                             'secrect' => '{1BA19531-F9E6-478D-9965-7EB31A590000}',
                     ),
