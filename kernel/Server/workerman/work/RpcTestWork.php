@@ -138,11 +138,12 @@ class RpcTestWork extends Man\Core\SocketWorker
             	}
             }
             // 获取网络数据
-            global $requestData;
+            global $reqData;
             RPCSocketClient::on('send', function ($data) {
-                $requestData = $data;
+                global $reqData;
+                $reqData = $data;
             });
-            $this->requestData = $requestData;
+            $this->requestData = $reqData;
             try {
             $call = '\RPCClient_'.$appName.'_'.$class;
             if (is_callable(array($call, 'instance'), true)) {
