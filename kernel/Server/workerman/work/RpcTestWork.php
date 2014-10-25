@@ -12,6 +12,8 @@ class RpcTestWork extends Man\Core\SocketWorker
 	
 	public $requestParam = array();
 	
+	public $requestData;
+	
 	public $application = array();
 	
 	public $serverConfig = array();
@@ -135,6 +137,10 @@ class RpcTestWork extends Man\Core\SocketWorker
             		}
             	}
             }
+            // 获取网络数据
+            RPCSocketClient::on('send', function ($data) {
+                $this->requestData = $data;
+            });
             try {
             $call = '\RPCClient_'.$appName.'_'.$class;
             if (is_callable(array($call, 'instance'), true)) {
@@ -165,6 +171,7 @@ class RpcTestWork extends Man\Core\SocketWorker
 			$error = $e->getMessage();
 		}
 		
+		$appname = isset($this->requestParam['appname']) ? $this->requestParam['appname'] : 'apptest';
 		$class = isset($this->requestParam['class']) ? $this->requestParam['class'] : 'Test';
 		$function = isset($this->requestParam['function']) ? $this->requestParam['function'] : 'getSomeData';
 		
@@ -186,7 +193,9 @@ HTML;
 		$html .= '<td><select name="appname">';
 		if (!empty($this->application)) {
 			foreach ($this->application as $k => $v) {
-				$html .= '<option value="'.$k.'">'.$k . '-' . $v .'</option>';
+			    $selected = '';
+			    if ($appname == $k) $selected = "selected";
+				$html .= '<option ' . $selected . '  value="'.$k.'">'.$k . '-' . $v .'</option>';
 			}
 		}
 		$html .= '</select></td>';
@@ -217,9 +226,14 @@ HTML;
 		if ($getError) {
 			$html .= '<b>'.$error.'</b><br />';
 		}
+		$html .= '<b>Return Data: </b>';
 		if ($response) {
 			$html .= '<pre>'.$response.'</pre>';
 			$html .= '<table><tr><td>time cost: ' . $this->executTime . '</td></tr></table>';
+		}
+		$html .= '<b>Request Data: </b>';
+		if ($this->requestData) {
+		    $html .= '<textarea style="width:98%;height:120px">'.$this->requestData.'</textarea>';
 		}
 		
 		$html .= <<<HTML
@@ -265,7 +279,7 @@ class RPCSocketClient
 
 	protected static $instance = array();
 	protected static $_config;
-	protected static $event = array();
+	protected static $events = array();
 
 	protected $connection;
 	protected $rpcUri;
@@ -438,7 +452,7 @@ class RPCSocketClient
 		}
 
 		// 调用回调函数
-		//self::emit('send', $data);
+		self::emit('send', $data);
 		
 		// 读取首部4个字节，网络字节序int
 		$lenBuffer = @socket_read($client, 4);
@@ -460,7 +474,7 @@ class RPCSocketClient
 			$length -= strlen($buffer);
 		}
 		
-		//self::emit('recv', $re);
+		self::emit('recv', $re);
 		
 		$this->closeConnection();
 
@@ -495,7 +509,7 @@ class RPCSocketClient
 	 */
 	protected static function emit($eventName)
 	{
-		if (!empty(self::$event[$eventName])) {
+		if (!empty(self::$events[$eventName])) {
 			if (!empty(self::$events[$eventName])) {
 				$args = array_slice(func_get_args(), 1);
 				foreach (self::$events[$eventName] as $callback) {
