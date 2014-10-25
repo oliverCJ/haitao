@@ -10,10 +10,6 @@ require_once WORKERMAN_ROOT_DIR . 'Common/Protocols/Http/Http.php';
 class RpcTestWork extends Man\Core\SocketWorker
 {
 	
-	public $requestParam = array();
-	
-	public $requestData;
-	
 	public $application = array();
 	
 	public $serverConfig = array();
@@ -90,34 +86,28 @@ class RpcTestWork extends Man\Core\SocketWorker
 		Man\Common\Protocols\Http\http_start($recv_buffer);
 		
 		// 处理
-		if (!empty($_POST) || !empty($_GET)) {
-			$this->requestParam = array_merge($this->requestParam, $_POST, $_GET);
+		if (!empty($_POST)) {
+			$this->processRequest($_POST);
+		} else {
+		    $this->displayHtml('', '');
 		}
 		
-		$this->displayHtml();
 	}
 	
 	/**
 	 * 处理请求
 	 */
-	public function processRequest()
+	public function processRequest($requestParam)
 	{
-		$requestParam = $this->requestParam;
 		if (!empty($requestParam)) {
 			if (!empty($requestParam['appname']) && array_key_exists($requestParam['appname'], $this->application) ) {
 				$appName = $requestParam['appname'];
-			} else {
-				throw new \Exception('Missing appname');
-			}			
+			}
 			if (!empty($requestParam['class'])) {
                 $class = $requestParam['class'];
-            } else {
-                throw new \Exception('Missing class');
             }
             if (!empty($requestParam['function'])) {
             	$function = $requestParam['function'];
-            } else {
-            	throw new \Exception('Missing function');
             }
             $param = array();
             if (!empty($requestParam['param'])) {
@@ -143,7 +133,6 @@ class RpcTestWork extends Man\Core\SocketWorker
                 global $reqData;
                 $reqData = $data;
             });
-            $this->requestData = $reqData;
             try {
             $call = '\RPCClient_'.$appName.'_'.$class;
             if (is_callable(array($call, 'instance'), true)) {
@@ -156,27 +145,19 @@ class RpcTestWork extends Man\Core\SocketWorker
             } catch (Exception $e) {
             	$response = (string)$e;
             }
+            $this->displayHtml($reqData, $response);
             return $response;
 		}
 		return false;
 	}
 	
-	public function displayHtml()
-	{
-		$getError = false;
-		$response = array();
+	public function displayHtml($reqData, $response)
+	{		
+	    $response = !is_scalar($response) ? var_export($response, true) : $response;
 		
-		try {
-			$response = $this->processRequest();
-			$response = !is_scalar($response) ? var_export($response, true) : $response;
-		} catch (Exception $e) {
-			$getError = true;
-			$error = $e->getMessage();
-		}
-		
-		$appname = isset($this->requestParam['appname']) ? $this->requestParam['appname'] : 'apptest';
-		$class = isset($this->requestParam['class']) ? $this->requestParam['class'] : 'Test';
-		$function = isset($this->requestParam['function']) ? $this->requestParam['function'] : 'getSomeData';
+		$appname = isset($_POST['appname']) ? $_POST['appname'] : 'apptest';
+		$class = isset($_POST['class']) ? $_POST['class'] : 'Test';
+		$function = isset($_POST['function']) ? $_POST['function'] : 'getSomeData';
 		
 		$html = <<<HTML
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
@@ -208,9 +189,9 @@ HTML;
 		$html .= '</tr><tr>';
 		$html .= '<td>方法:</td>';
 		$html .= '<td><input name="function" type="text" value="'.$function.'" style="width:400px"/></td>';
-		if ($response && !empty($this->requestParam['param'])) {
+		if ($response && !empty($_POST['param'])) {
 			$html .= '</tr><tbody id="parames">';
-			foreach ($this->requestParam['param'] as $v) {
+			foreach ($_POST['param'] as $v) {
 				$html .= '<tr><td>参数:</td>';
 				$html .= '<td><input name="param[]" type="text" value="' . $v . '" style="width:400px"/> <a href="javascript:void(0)" onclick="delParam(this)">删除本行</a></td>';
 				$html .= '</tr>';
@@ -226,17 +207,16 @@ HTML;
 		$html .= '</tr></tfoot>';
 		$html .= '</table>';
 		$html .= '</form>';
-		if ($getError) {
-			$html .= '<b>'.$error.'</b><br />';
-		}
-		$html .= '<b>Return Data: </b>';
+		
 		if ($response) {
+		    $html .= '<b>Return Data: </b>';
 			$html .= '<pre>'.$response.'</pre>';
 			$html .= '<table><tr><td>time cost: ' . $this->executTime . '</td></tr></table>';
 		}
-		$html .= '<b>Request Data: </b>';
-		if ($this->requestData) {
-		    $html .= '<textarea style="width:98%;height:120px">'.$this->requestData.'</textarea>';
+		
+		if ($reqData) {
+		    $html .= '<b>Request Data: </b>';
+		    $html .= '<textarea style="width:98%;height:120px">'.$reqData.'</textarea>';
 		}
 		
 		$html .= <<<HTML
