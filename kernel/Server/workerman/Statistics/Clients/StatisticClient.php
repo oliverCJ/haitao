@@ -11,6 +11,8 @@ class StatisticClient
      */
     protected static $timeMap = array();
     
+    public static $report_address = 'udp://127.0.0.1:55656';
+    
     /**
      * 模块接口上报消耗时间记时
      * @param string $module
@@ -20,6 +22,17 @@ class StatisticClient
     public static function tick($module = '', $interface = '')
     {
         return self::$timeMap[$module][$interface] = microtime(true);
+    }
+    
+    /**
+     * 设置上报地址
+     * 
+     * @param unknown_type $address
+     */
+    public static function setReportAdress($address = '')
+    {
+    	if (!empty($address)) self::$report_address = $address;
+    	return self::$report_address;
     }
     
     /**
@@ -34,7 +47,7 @@ class StatisticClient
      */
     public static function report($module, $interface, $success, $code, $msg, $report_address = '')
     {
-        $report_address = $report_address ? $report_address : 'udp://127.0.0.1:55656';
+        $report_address = $report_address ? $report_address : self::$report_address;
         if(isset(self::$timeMap[$module][$interface]) && self::$timeMap[$module][$interface] > 0)
         {
             $time_start = self::$timeMap[$module][$interface];

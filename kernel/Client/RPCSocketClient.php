@@ -1,7 +1,9 @@
 <?php
 namespace Client;
+
+require_once WORKERMAN_ROOT_DIR . 'Common/Protocols/JsonProtocol.php';
 /**
- * 自动调应用类
+ * 客户端调用类
  * 配置：
  * 'apptest' => array(
  *    'host' =>  'http://127.0.0.1:8000/',
@@ -116,6 +118,28 @@ class RPCSocketClient
     }
     
     /**
+     * 抛出 Socket 异常信息.
+     *
+     * @param resource $client            Socket 句柄.
+     * @param boolean  $withExecutionTime 是否记录执行时间.
+     *
+     * @throw Exception
+     *
+     * @return void
+     */
+    private function raiseSocketException($client = null, $withExecutionTime = false)
+    {
+    	if ($client === null) $client = $this->connection;
+    
+    	$errstr = socket_strerror(socket_last_error($client));
+    	@socket_close($client);
+    
+    	throw new \Exception($withExecutionTime
+    			? sprintf('RPCSocketClient: %s, %s(%.3fs)', $this->rpcUri, $errstr, $this->executionTime())
+    			: sprintf('RPCSocketClient: %s, %s', $this->rpcUri, $errstr));
+    }
+    
+    /**
      * 创建网络链接.
      *
      * @throws Exception 抛出链接错误信息.
@@ -124,11 +148,15 @@ class RPCSocketClient
      */
     private function openConnection()
     {
-        $this->connection = stream_socket_client($this->rpcUri, $errno, $errstr);
-        if (!$this->connection) {
-            throw new \Exception(sprintf('RpcSocketClient: %s, %s', $this->rpcUri, $errstr));
-        }
-        @stream_set_timeout($this->connection, 60);
+        $client = @socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
+		if (!$client)
+			$this->raiseSocketException();
+		list( $tcp, $host, $port) = explode(':', $this->rpcUri);
+		$host = str_replace('/', '', $host);
+		if (!@socket_connect($client, $host, $port))
+			$this->raiseSocketException($client);
+		
+		$this->connection = $client;
     }
     
     /**
@@ -138,7 +166,7 @@ class RPCSocketClient
      */
     private function closeConnection()
     {
-        @fclose($this->connection);
+        @socket_close($this->connection);
     }
     
     /**
@@ -157,36 +185,47 @@ class RPCSocketClient
         
         $this->openConnection();
         
-        $fp = $this->connection;
+        $client = $this->connection;
         // 发送 RPC 文本请求协议
         $bufferLength = strlen($data);
         $bufferTotalLength = 4 + $bufferLength;
         $buffer = pack('N', $bufferTotalLength) . $data;
-        if (!@fwrite($fp, $buffer)) {
-            throw new Exception(sprintf('RPCSoceketClient: Network %s disconnected', $this->rpcUri));
-        }
+    	if (!@socket_write($client, $buffer, $bufferTotalLength)) {
+			throw new \Exception(sprintf('RPCSoceketClient: Network %s disconnected', $this->rpcUri));
+		}
         
         // 调用回调函数
-        $this->emit('send', $data);
-        
-        if (!$len = @fgets($fp)) {
-            throw new \Exception(sprintf('RPCSoceketClient: Network %s maybe timeout(%.3fs), or have a fatal error on the server', $this->rpcUri, $this->getExectionTime()));
-        }
-        $len = trim($len);
-        if (!preg_match('#^\d+$#', $len)) {
-            throw new Exception(sprintf('RPCSoceketClient: Got wrong protocol codes: %s', bin2hex($len)));
-        }
-        $re = '';
-        while (strlen($re) < $len ) {
-            $re .= fgets($fp);
-        }
-        self::emit('recv', $re);
+       // self::emit('send', $data);
+       
+		// 读取首部4个字节，网络字节序int
+		$lenBuffer = @socket_read($client, 4);
+		$lenBufferData = unpack('Ntotal_length', $lenBuffer);
+		$length = $lenBufferData['total_length'] - 4; // 去掉首部4个存储长度的字节
+		
+		if ($length === false)
+			$this->raiseSocketException(null, true);
+		if (!ctype_digit((string)$length)) {
+			throw new \Exception(sprintf('RPCSoceketClient: Got wrong protocol codes: %s', bin2hex($length)));
+		}
+		
+    	// 读取返回数据
+		$re = '';
+		while($length > 0) {
+			$buffer = socket_read($client, 4096);
+			if ($buffer === false)
+				$this->raiseSocketException(null, true);
+			$re .= $buffer;
+			$length -= strlen($buffer);
+		}
+		
+        //self::emit('recv', $re);
         $this->closeConnection();
         
         if ($re != '') {
             if ($this->rpcCompressor === 'GZ') {
                 $re = @gzuncompress($re);
             }
+            
             $re = json_decode($re, true);
             return $re;
         }
@@ -201,7 +240,10 @@ class RPCSocketClient
      */
     public static function on($eventName, $eventCallback)
     {
-        
+    	if (empty(self::$events[$eventName])) {
+    		self::$events[$eventName] = array();
+    	}
+    	array_push(self::$events[$eventName], $eventCallback);
     }
     
     /**
@@ -212,7 +254,12 @@ class RPCSocketClient
     protected static function emit($eventName)
     {
         if (!empty(self::$event[$eventName])) {
-            
+        	if (!empty(self::$events[$eventName])) {
+        		$args = array_slice(func_get_args(), 1);
+        		foreach (self::$events[$eventName] as $callback) {
+        			@call_user_func_array($callback, $args);
+        		}
+        	}
         }
     }
     

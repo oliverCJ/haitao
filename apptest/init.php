@@ -24,6 +24,7 @@ function on_phpserver_request_finish()
     
 }
 if (!defined('APP_ROOT_PATH')) define('APP_ROOT_PATH', __DIR__.DIRECTORY_SEPARATOR);
-require_once(ROOT_PATH . 'Client/RPCClient.php');
 
-\BootStrap\Autoload::instance()->setRoot(APP_ROOT_PATH);
+require_once(KERNEL_ROOT_PATH . 'Client/RPCSocketClient.php');
+require_once(KERNEL_ROOT_PATH . 'BootStrap/Autoload.php');
+\BootStrap\Autoload::instance()->setRoot(APP_ROOT_PATH)->init();

@@ -22,7 +22,7 @@ abstract class RpcWork extends Man\Core\SocketWorker
     */
     protected function onStart()
     {
-        return false;
+    	return false;
     }
     
     /**
@@ -42,22 +42,44 @@ abstract class RpcWork extends Man\Core\SocketWorker
      */
     public function dealProcess($recv_str)
     {
-        try {
-            
+        try {            
             if (($data = Man\Common\Protocols\JsonProtocol::decode($recv_str)) === false) {
                 throw new \Exception ('RPCWork: parse data failed');
             }
-            if ($data['data'] = 'PING') return 'PONE';
+            if ($data['data'] == 'PING') {
+            	return $this->sendToClient(Man\Common\Protocols\JsonProtocol::encode('PONE'));
+            }
             
             $this->rpcCompressor = null;
             
-            $data = $data['data'];
-        
-        } catch (\Exception $e) {
+            $this->process($data);
             
+        } catch (Exception $ex) {
+        	$returnData = array(
+        					'exception' => array(
+        							'class' => get_class($ex),
+        							'message' => $ex->getMessage(),
+        							'code' => $ex->getCode(),
+        							'file' => $ex->getFile(),
+        							'line' => $ex->getLine(),
+        							'traceAsString' => $ex->getTraceAsString(),
+        					)
+        			);
+        	return $this->sendToClient(Man\Common\Protocols\JsonProtocol::encode(json_encode($returnData)));
         }
-        //$interface = '';
-        //StatisticClient::tick(__CLASS__, $interface);
+    }
+    
+    /**
+     * 请求数据签名.
+     *
+     * @param string $data   待签名的数据.
+     * @param string $secret 私钥.
+     *
+     * @return string
+     */
+    protected function encrypt($data, $secret)
+    {
+    	return md5($data . '&' . $secret);
     }
     
     /**

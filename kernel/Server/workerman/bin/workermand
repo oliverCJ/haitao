@@ -15,6 +15,8 @@ if(empty($argv[1]))
 $cmd = $argv[1];
 
 define('WORKERMAN_ROOT_DIR', realpath(__DIR__."/../")."/");
+// 定义项目根目录
+define('KERNEL_ROOT_PATH', realpath(__DIR__ . '/../../../') . DIRECTORY_SEPARATOR);
 
 chdir(WORKERMAN_ROOT_DIR);
 
