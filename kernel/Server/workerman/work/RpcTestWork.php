@@ -37,9 +37,33 @@ class RpcTestWork extends Man\Core\SocketWorker
 	        				'host' => 'tcp://127.0.0.1:9527/',
 	        				'secrect' => '{1BA19531-F9E6-478D-9965-7EB31A590000}',
 	        				),
+                'cart' => array(
+                        'host' => 'tcp://127.0.0.1:9528/',
+                        'user' => 'app',
+                        'secrect' => '{1BA19531-F9E6-478D-9965-7EB31A590001}',
+                        ),
+                'item' => array(
+                       'host' => 'tcp://127.0.0.1:9529/',
+                        'user' => 'app',
+                        'secrect' => '{1BA19531-F9E6-478D-9965-7EB31A590001}',
+                ),
+                'user' => array(
+                        'host' => 'tcp://127.0.0.1:9530/',
+                        'user' => 'app',
+                        'secrect' => '{1BA19531-F9E6-478D-9965-7EB31A590001}',
+                ),
+                'sns' => array(
+                        'host' => 'tcp://127.0.0.1:9531/',
+                        'user' => 'app',
+                        'secrect' => '{1BA19531-F9E6-478D-9965-7EB31A590001}',
+                ),
         		);
         $this->application = array(
         		'apptest' =>'127.0.0.1:9527',
+                'cart' =>'127.0.0.1:9528',
+                'item' =>'127.0.0.1:9529',
+                'user' =>'127.0.0.1:9530',
+                'sns' =>'127.0.0.1:9531',
         		);
 	}
 	

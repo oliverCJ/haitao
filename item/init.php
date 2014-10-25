@@ -1,6 +1,7 @@
 <?php
 /**
  * 应用入口配置.
+ * 商品页应用接口.
  * 
  * @author chengjun <cgjp123@163.com>
  */
@@ -28,4 +29,4 @@ if (!defined('APP_ROOT_PATH')) define('APP_ROOT_PATH', __DIR__.DIRECTORY_SEPARAT
 require_once(KERNEL_ROOT_PATH . 'Client/RPCSocketClient.php');
 require_once(KERNEL_ROOT_PATH . 'BootStrap/Autoload.php');
 \BootStrap\Autoload::instance()->setRoot(APP_ROOT_PATH)->init();
-define('APP_NAME', 'app_apptest');
+define('APP_NAME', 'app_item');
