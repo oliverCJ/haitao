@@ -5,7 +5,7 @@
  * @author oliver <cgjp123@163.com>
  */
 
-namespace Model;
+namespace Db;
 
 /**
  * Model层.
