@@ -19,7 +19,9 @@ class User
             'SUCCESS'                          => array('code' => '0', 'msg' => 'success'),
             'REGISTER_DATA_ERROR'  => array('code' => '10001', 'msg' => 'register data error: %s'),
             'ILLEGAL_PHONEID'           => array('code' => '10002', 'msg' => 'illegal phone id'),
-            'MEMBER_INFO_USED'      => array('code' => '10003', 'msg' => 'register member info had used by others: %s'),
+            'USERNAME_USED'            => array('code' => '10003', 'msg' => 'username had used'),
+            'EMAIL_USED'                     => array('code' => '10004', 'msg' => 'email had used'),
+            'MOBILE_USED'                  => array('code' => '10005', 'msg' => 'mobile had used'),
             );
     
     /**
@@ -45,14 +47,19 @@ class User
      */
     public function memberRegister(array $registerData, $phoneId = '')
     {
+        // 注册错误捕捉函数,规范化输出应用错误
+        \BootStrap\ErrorHandler::instance();
+        
         if (empty($registerData) || !is_array($registerData)) {
-            return \Helper\Helper::reponseData(printf(self::$reponse['REGISTER_DATA_ERROR'], 'empty register data'));
+            self::$reponse['REGISTER_DATA_ERROR']['msg'] = sprintf(self::$reponse['REGISTER_DATA_ERROR']['msg'], 'empty register data');
+            return \Helper\Helper::reponseData(self::$reponse['REGISTER_DATA_ERROR']);
         }
         // 检查数据完整性
         try {
             \Module\User::instance()->checkRegisterData($registerData);
         } catch (\Exception\UserException $e) {
-            return \Helper\Helper::reponseData(printf(self::$reponse['REGISTER_DATA_ERROR'], $e->getMessage()));
+            self::$reponse['REGISTER_DATA_ERROR']['msg'] = sprintf(self::$reponse['REGISTER_DATA_ERROR']['msg'], $e->getMessage());
+            return \Helper\Helper::reponseData(self::$reponse['REGISTER_DATA_ERROR']);
         }
         if (!empty($phoneId)) {
             if (!\Helper\Helper::checkCtypeAlNum($phoneId)) {
@@ -61,9 +68,19 @@ class User
         }
         // 检查用户名或邮箱或手机号是否已经被使用
         try {
-            \Module\User::instance()->checkMemberInfoIsUsed($registerData['username'], $registerData['email'], $registerData['mobile'])
+            if (!\Module\User::instance()->checkUserNameIsUsed($registerData['username'])) {
+                return \Helper\Helper::reponseData(self::$reponse['USERNAME_USED']);
+            }
+            
+            if (!\Module\User::instance()->checkEmailInfoIsUsed($registerData['email'])) {
+                return \Helper\Helper::reponseData(self::$reponse['EMAIL_USED']);
+            }
+            
+            if (!\Module\User::instance()->checkMobileInfoIsUsed($registerData['mobile'])) {
+                return \Helper\Helper::reponseData(self::$reponse['MOBILE_USED']);
+            }
         } catch (\Exception\UserException $e) {
-            return \Helper\Helper::reponseData(printf(self::$reponse['MEMBER_INFO_USED'], $e->getMessage()));
+            return \Helper\Helper::reponseData(self::$reponse['CATCH_EXCEPTION']);
         }
         
         // 返回用户ID或false,false表示注册失败

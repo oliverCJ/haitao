@@ -9,7 +9,7 @@ class User extends \Db\DbBase
 {
     const TABLE_NAME = 'haiou_member';
     
-    public $fields = array(
+    protected $fields = array(
             'userid', //int(8) NOT NULL AUTO_INCREMENT,
             'phoneid', //varchar(30) DEFAULT NULL,
             'username', // char(30) DEFAULT NULL,
@@ -54,7 +54,29 @@ class User extends \Db\DbBase
      */
     public function insertMember($insertData = array())
     {
-        if (empty($insertData)) return false;
+        if (empty($insertData)) throw new \Exception\UserException('empty insert data');
         return \Db\Connection::instance()->write()->insert(self::TABLE_NAME, $insertData);
+    }
+    
+    /**
+     * 检查字段值是否已经存在与数据库中.
+     * 
+     * @param unknown_type $column
+     * @param unknown_type $value
+     * @throws \Exception\UserException
+     * @return boolean
+     */
+    public function checkColumnValueIsExists($column, $value)
+    {
+        if (!$column || !$value) throw new \Exception\UserException('empty param');
+        if (!in_array($column, $this->fields)) throw new \Exception\UserException('illegal column');
+        $cond = array(
+                $column => $value
+                );
+        $result = \Db\Connection::instance()->write()->select('userid')->where($cond)->queryRow();
+        echo \Db\Connection::instance()->write()->getLastSql();
+        return false;
+        if (empty($result)) return true;
+        return false;
     }
 }

@@ -35,37 +35,37 @@ class User extends \Module\ModuleBase
                 switch ($v) {
                     case 'name' :
                     case 'username' :
-                        if (!\Helper\Hepler::checkUserName($registerData[$k])) {
+                        if (! \Helper\Helper::checkUserName($registerData[$v])) {
                             $checkResult = false;
-                            $checkResultString = 'the ' . $v . 'include illegal character';
+                            $checkResultString = 'the ' . $v . ' include illegal character';
                             break(2);
                         }
                         break;
                     case 'sex' :
-                        if (!ctype_digit($registerData[$k])) {
+                        if (!ctype_digit($registerData[$v])) {
                             $checkResult = false;
-                            $checkResultString = 'the ' . $v . 'include illegal character';
+                            $checkResultString = 'the ' . $v . ' include illegal character';
                             break(2);
                         }
-                        break
+                        break;
                 case 'email' :
-                        if (!\Helper\Hepler::checkEmail($registerData[$k])) {
+                        if (!\Helper\Helper::checkEmail($registerData[$v])) {
                             $checkResult = false;
-                            $checkResultString = 'the ' . $v . 'include illegal character';
+                            $checkResultString = 'the ' . $v . ' include illegal character';
                             break(2);
                         }
                         break;
                     case 'ip' :
-                        if (!\Helper\Hepler::checkIp($registerData[$k])) {
+                        if (!\Helper\Helper::checkIp($registerData[$v])) {
                             $checkResult = false;
-                            $checkResultString = 'the ' . $v . 'include illegal character';
+                            $checkResultString = 'the ' . $v . ' include illegal character';
                             break(2);
                         }
                         break;
                     case 'mobile' :
-                        if (!\Helper\Hepler::checkMobile($registerData[$k])) {
+                        if (!\Helper\Helper::checkMobile($registerData[$v])) {
                             $checkResult = false;
-                            $checkResultString = 'the ' . $v . 'include illegal character';
+                            $checkResultString = 'the ' . $v . ' include illegal character';
                             break(2);
                         }
                         break;
@@ -79,14 +79,36 @@ class User extends \Module\ModuleBase
     }
     
     /**
-     * 检查是否已经被使用.
+     * 检查用户名是否已经被使用.
      * 
      * @param unknown_type $userName
      * @param unknown_type $email
      * @param unknown_type $mobile
      */
-    public function checkMemberInfoIsUsed($userName, $email, $mobile) {
-        
+    public function checkUserNameIsUsed($userName) {
+        return \Model\User::instance()->checkColumnValueIsExists('username', $userName);
+    }
+    
+    /**
+     * 检查邮箱是否已经被使用.
+     *
+     * @param unknown_type $userName
+     * @param unknown_type $email
+     * @param unknown_type $mobile
+     */
+    public function checkEmailInfoIsUsed($email) {
+        return \Model\User::instance()->checkColumnValueIsExists('email', $email);
+    }
+    
+    /**
+     * 检查手机是否已经被使用.
+     *
+     * @param unknown_type $userName
+     * @param unknown_type $email
+     * @param unknown_type $mobile
+     */
+    public function checkMobileInfoIsUsed($mobile) {
+        return \Model\User::instance()->checkColumnValueIsExists('mobile', $mobile);
     }
     
     /**

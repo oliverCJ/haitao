@@ -3,6 +3,7 @@ namespace Helper;
 
 class Helper
 {
+    
     /**
      * 检查数据是否包含非法字符,只能含字母或数字.
      * 
@@ -34,7 +35,7 @@ class Helper
      */
     public static function checkUserName($userName)
     {
-        if (!empty($userName) && preg_match('#^[A-Za-z0-9\u4E00-\u9FA5\-\_]{4,30}$#', $userName) !== false) return true;
+        if (!empty($userName) && preg_match('#^[A-Za-z0-9\x80-\xff\-\_]{4,30}$#', $userName) !== false) return true;
         return false;
     }
     
@@ -56,7 +57,7 @@ class Helper
      */
     public static function checkIp($ip)
     {
-        if (!empty($mobile) && preg_match('#^([\d]{1,3}\.){3}[\d]{1,3}$#', $mobile) !== false) return true;
+        if (!empty($ip) && preg_match('#^([\d]{1,3}\.){3}[\d]{1,3}$#', $ip) !== false) return true;
         return false;
     }
     
@@ -68,6 +69,6 @@ class Helper
      */
     public static function reponseData($response, $data = array())
     {
-        return json_encode(array_merge($response, 'result' => $data));
+        return array_merge($response, array('result' => $data));
     }
 }
