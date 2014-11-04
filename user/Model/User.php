@@ -73,9 +73,7 @@ class User extends \Db\DbBase
         $cond = array(
                 $column => $value
                 );
-        $result = \Db\Connection::instance()->write()->select('userid')->where($cond)->queryRow();
-        echo \Db\Connection::instance()->write()->getLastSql();
-        return false;
+        $result = \Db\Connection::instance()->write()->select('userid')->from(self::TABLE_NAME)->where($cond)->queryRow();
         if (empty($result)) return true;
         return false;
     }

@@ -663,7 +663,7 @@ class Connection
             $v_connect = '';
             if (is_int($k)) {
                 if ($content){
-                    $content .= $login . ' (' . $this->buildCondition($v) . ') ';
+                    $content .= $logic . ' (' . $this->buildCondition($v) . ') ';
                 } else {
                     $content .= ' (' . $this->buildCondition($v) . ') ';
                 }
