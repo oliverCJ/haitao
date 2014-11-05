@@ -14,14 +14,18 @@ class User
      * @var array
      */
     public static $reponse = array(
-            'CATCH_EXCEPTION'         => array('code' => '-2', 'msg' => 'sorry, system catch exception'),
-            'SYSTEM_BUSY'                 => array('code' => '-1', 'msg' => 'system busy, please try again later'),
-            'SUCCESS'                          => array('code' => '0', 'msg' => 'success'),
-            'REGISTER_DATA_ERROR'  => array('code' => '10001', 'msg' => 'register data error: %s'),
-            'ILLEGAL_PHONEID'           => array('code' => '10002', 'msg' => 'illegal phone id'),
-            'USERNAME_USED'            => array('code' => '10003', 'msg' => 'username had used'),
-            'EMAIL_USED'                     => array('code' => '10004', 'msg' => 'email had used'),
-            'MOBILE_USED'                  => array('code' => '10005', 'msg' => 'mobile had used'),
+            'CATCH_EXCEPTION'                 => array('code' => '-2', 'msg' => 'sorry, system catch exception'),
+            'SYSTEM_BUSY'                         => array('code' => '-1', 'msg' => 'system busy, please try again later'),
+            'SUCCESS'                                  => array('code' => '0', 'msg' => 'success'),
+            'REGISTER_DATA_ERROR'          => array('code' => '10001', 'msg' => 'register data error: %s'),
+            'ILLEGAL_PHONEID'                   => array('code' => '10002', 'msg' => 'illegal phone id'),
+            'USERNAME_USED'                    => array('code' => '10003', 'msg' => 'username had used'),
+            'EMAIL_USED'                             => array('code' => '10004', 'msg' => 'email had used'),
+            'MOBILE_USED'                          => array('code' => '10005', 'msg' => 'mobile had used'),
+            
+            // 预留一些错误code给注册
+            'LOGIN_USERNAME_ERROR'     => array('code' => '10010', 'msg' => 'illegal login username'),
+            'LOGIN_PASSWORD_ERROR'     => array('code' => '10011', 'msg' => 'the login password error, may be it is empty'),
             );
     
     /**
@@ -34,7 +38,15 @@ class User
      */
     public function memberLogin($userName, $password)
     {
+        if (!\Helper\Helper::checkUserName($userName)) {
+            return \Helper\Helper::reponseData(self::$reponse['LOGIN_USERNAME_ERROR']);
+        }
+        if (empty($password)) {
+            return \Helper\Helper::reponseData(self::$reponse['LOGIN_PASSWORD_ERROR']);
+        }
         
+        $result = \Module\User::instance()->memberLogin($userName, $password);
+        return \Helper\Helper::reponseData(self::$reponse['SUCCESS'], $result);
     }
     
     /**

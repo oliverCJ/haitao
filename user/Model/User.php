@@ -47,6 +47,18 @@ class User extends \Db\DbBase
     }
     
     /**
+     * 获取数据库操作实例.
+     * 
+     * @param unknown_type $isMaster 是否操作主库.
+     * 
+     * @return Ambigous <resource, multitype:>
+     */
+    public function getDb($isMaster = false)
+    {
+        return $isMaster ? \Db\Connection::instance()->write() : \Db\Connection::instance()->read();
+    }
+    
+    /**
      * 插入一条用户信息.
      * 
      * @param unknown_type $insertData
@@ -55,26 +67,56 @@ class User extends \Db\DbBase
     public function insertMember($insertData = array())
     {
         if (empty($insertData)) throw new \Exception\UserException('empty insert data');
-        return \Db\Connection::instance()->write()->insert(self::TABLE_NAME, $insertData);
+        return $this->getDb(true)->insert(self::TABLE_NAME, $insertData);
     }
     
     /**
      * 检查字段值是否已经存在与数据库中.
      * 
-     * @param unknown_type $column
-     * @param unknown_type $value
-     * @throws \Exception\UserException
+     * @param unknown_type $column 字段.
+     * @param unknown_type $value     字段值.
+     * 
      * @return boolean
      */
     public function checkColumnValueIsExists($column, $value)
     {
-        if (!$column || !$value) throw new \Exception\UserException('empty param');
-        if (!in_array($column, $this->fields)) throw new \Exception\UserException('illegal column');
+        if (!$column || !$value) return false;
+        if (!in_array($column, $this->fields)) return false;
         $cond = array(
                 $column => $value
                 );
-        $result = \Db\Connection::instance()->write()->select('userid')->from(self::TABLE_NAME)->where($cond)->queryRow();
+        $result = $this->getDb()->select('userid')->from(self::TABLE_NAME)->where($cond)->queryRow();
         if (empty($result)) return true;
         return false;
+    }
+    
+    /**
+     * 根据条件获取用户信息.
+     * 
+     * @param unknown_type $cond 条件.
+     * @param unknown_type $fileld 需要获取的字段.
+     * 
+     */
+    public function getUserInfoByCond($cond = array(), $fileld = '*')
+    {
+        if (empty($cond)) return false;;
+        if ($fileld == '*') {
+            $field = implode(',', $this->getDb()->quoteObj($this->getFields()));
+        }
+        return $this->getDb()->select($field)->from(self::TABLE_NAME)->where($cond)->queryRow();
+    }
+    
+    /**
+     * 根据条件更新数据.
+     * 
+     * @param unknown_type $param 要更新的数据.
+     * @param unknown_type $cond    条件.
+     * 
+     * @return boolean
+     */
+    public function updateUserInfo($param = array(), $cond = array())
+    {
+        if (empty($cond) || empty($param)) return false;
+        return $this->getDb(true)->update(self::TABLE_NAME, $param, $cond);
     }
 }

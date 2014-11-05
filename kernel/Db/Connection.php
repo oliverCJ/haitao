@@ -294,7 +294,7 @@ class Connection
                 if (is_int($column)) {
                     $update_str .= $value;
                 } else {
-                    $column = $this->quoteObj($value);
+                    $column = $this->quoteObj($column);
                     $value = is_null($value) ? 'NULL' : $this->quote($value);
                     $update_str .= $column . '=' . $value . ',';
                 }
@@ -314,7 +314,7 @@ class Connection
         }
         $sql .= $table . ' SET ' . $update_str . ' WHERE ' . $cond . $order_by_limit;
         $re = $this->execute($sql);
-        return $ret;
+        return $re;
     }
     
     public function delete($table, $cond)
@@ -628,7 +628,7 @@ class Connection
         $this->allowGuessConditionOperator = $v;
     }
     
-    public function bulidWhere($condition = array(), $logic = 'AND')
+    public function buildWhere($condition = array(), $logic = 'AND')
     {
         $cond = $this->buildCondition($condition, $logic);
         if ($cond) $cond = ' WHERE ' . $cond;

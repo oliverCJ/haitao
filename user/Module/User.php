@@ -1,6 +1,10 @@
 <?php
 namespace Module;
-
+/**
+ * 用户操作模块.
+ *
+ * @author oliver <cgjp123@163.com>
+ */
 class User extends \Module\ModuleBase
 {
     const PASSWORD_KEY = 'password_';
@@ -12,6 +16,53 @@ class User extends \Module\ModuleBase
     public static function instance()
     {
         return parent::instance();
+    }
+    
+    /**
+     * 用户登录
+     * 
+     * @param unknown_type $username
+     * @param unknown_type $passwd
+     * @return boolean|unknown
+     */
+    public function memberLogin($username, $passwd)
+    {
+        $passwd = substr(hash('sha512', self::PASSWORD_KEY . $passwd), 0, 32);
+        $cond = array(
+                'username' => $username,
+                'password' => $passwd,
+                );
+        $result = \Model\User::instance()->getUserInfoByCond($cond);
+        if (empty($result)) {
+            return false;
+        }
+        // 登录成功,要更新一下最后登录时间
+        $updateCond = array(
+                'userid' => $result['userid'],
+                );
+        $updateParam = array(
+                'lastlogintime' => time(),
+                );
+        \Model\User::instance()->updateUserInfo($updateParam, $updateCond);
+        return $result;
+    }
+    
+    /**
+     * 根据用户ID获取用户信息.
+     * 
+     * @param unknown_type $uid
+     * @return boolean|unknown
+     */
+    public function getUserInfoByUid($uid)
+    {
+        $cond = array(
+                'userid' => $uid
+                );
+        $result = \Model\User::instance()->getUserInfoByCond($cond);
+        if (empty($result)) {
+            return false;
+        }
+        return $result;
     }
     
     /**
