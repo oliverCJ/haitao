@@ -46,10 +46,7 @@ class User
      * @return mixed
      */
     public function memberRegister(array $registerData, $phoneId = '')
-    {
-        // 注册错误捕捉函数,规范化输出应用错误
-        \BootStrap\ErrorHandler::instance();
-        
+    {        
         if (empty($registerData) || !is_array($registerData)) {
             self::$reponse['REGISTER_DATA_ERROR']['msg'] = sprintf(self::$reponse['REGISTER_DATA_ERROR']['msg'], 'empty register data');
             return \Helper\Helper::reponseData(self::$reponse['REGISTER_DATA_ERROR']);
