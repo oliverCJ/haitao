@@ -13,7 +13,7 @@ class Db
     
     public $read = array(
             'default' => array(
-                    'dsn' => 'mysql:host=127.0.0.1;port=3306;dbname=test',
+                    'dsn' => 'mysql:host=127.0.0.1;port=3306;dbname=haitao',
                     'user' => 'root',
                     'password' => 'root',
                     'confirm_link' => true,//required to set to TRUE in daemons.
@@ -26,7 +26,7 @@ class Db
     
     public $write = array(
             'default' => array(
-                    'dsn' => 'mysql:host=127.0.0.1;port=3306;dbname=test',
+                    'dsn' => 'mysql:host=127.0.0.1;port=3306;dbname=haitao',
                     'user' => 'root',
                     'password' => 'root',
                     'confirm_link' => true,//required to set to TRUE in daemons.
