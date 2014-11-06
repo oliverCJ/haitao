@@ -59,7 +59,7 @@ class JsonWork extends RpcWork
     			// 验证数据签名
     			if ($signature == $this->encrypt(json_encode($requestParam), $userRpcSecrectKey)) {
     				// 验证通过,开始获取接口数据
-    				$class_name = '\\Handler\\'.$requestParam['class'];
+    				$class_name = '\\Handler\\'.ucfirst($requestParam['class']);
     				$_SERVER['REMOTE_ADDR'] = $this->getRemoteIp();
     				try {
     					$retrunData = '';
