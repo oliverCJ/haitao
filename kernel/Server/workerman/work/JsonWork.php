@@ -101,7 +101,13 @@ class JsonWork extends RpcWork
     				StatisticClient::report($requestParam['classname'], $requestParam['method'], $success, 1, json_encode($retrunData));
     				return $this->sendToClient(Man\Common\Protocols\JsonProtocol::encode($retrunData));
     			}
+    			// 上报统计
+    			StatisticClient::report($requestParam['classname'], $requestParam['method'], false, 0, 'Worng signature');
+    			return $this->sendToClient(Man\Common\Protocols\JsonProtocol::encode('Worng signature'));
     		}
+    		// 上报统计
+    		StatisticClient::report($requestParam['classname'], $requestParam['method'], false, 0, 'Worng password');
+    		return $this->sendToClient(Man\Common\Protocols\JsonProtocol::encode('Worng password'));
     	}
     	// 上报统计
     	StatisticClient::report($requestParam['classname'], $requestParam['method'], false, 0, 'Permission denied');
