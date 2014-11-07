@@ -57,9 +57,14 @@ class User
      * 
      * @return mixed
      */
-    public function memberRegister(array $registerData, $phoneId = '')
+    public function memberRegister($registerDataJson, $phoneId = '')
     {        
-        if (empty($registerData) || !is_array($registerData)) {
+        if (empty($registerDataJson) ) {
+            self::$reponse['REGISTER_DATA_ERROR']['msg'] = sprintf(self::$reponse['REGISTER_DATA_ERROR']['msg'], 'empty register data');
+            return \Helper\Helper::reponseData(self::$reponse['REGISTER_DATA_ERROR']);
+        }
+        $registerData = json_decode($registerDataJson, true);
+        if (empty($registerData) || !is_array($registerData) ) {
             self::$reponse['REGISTER_DATA_ERROR']['msg'] = sprintf(self::$reponse['REGISTER_DATA_ERROR']['msg'], 'empty register data');
             return \Helper\Helper::reponseData(self::$reponse['REGISTER_DATA_ERROR']);
         }
