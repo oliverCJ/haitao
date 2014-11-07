@@ -45,7 +45,7 @@ class JsonWork extends RpcWork
     	$signature = $data['signature'];
     	
     	// 统计
-    	StatisticClient::tick($requestParam['class'], $requestParam['method']);
+    	StatisticClient::tick($requestParam['classname'], $requestParam['method']);
     	
     	// 检查版本
     	if ($requestParam['version'] != '1.0') return $this->sendToClient(Man\Common\Protocols\JsonProtocol::encode('call wrong version interface, please check it'));
@@ -59,7 +59,7 @@ class JsonWork extends RpcWork
     			// 验证数据签名
     			if ($signature == $this->encrypt(json_encode($requestParam), $userRpcSecrectKey)) {
     				// 验证通过,开始获取接口数据
-    				$class_name = '\\Handler\\'.ucfirst($requestParam['class']);
+    				$class_name = '\\Handler\\'.ucfirst($requestParam['classname']);
     				$_SERVER['REMOTE_ADDR'] = $this->getRemoteIp();
     				try {
     					$retrunData = '';
@@ -98,13 +98,13 @@ class JsonWork extends RpcWork
     					\on_phpserver_request_finish();
     				}
     				// 统计上报
-    				StatisticClient::report($requestParam['class'], $requestParam['method'], $success, 1, json_encode($retrunData));
+    				StatisticClient::report($requestParam['classname'], $requestParam['method'], $success, 1, json_encode($retrunData));
     				return $this->sendToClient(Man\Common\Protocols\JsonProtocol::encode($retrunData));
     			}
     		}
     	}
     	// 上报统计
-    	StatisticClient::report($requestParam['class'], $requestParam['method'], false, 0, 'Permission denied');
+    	StatisticClient::report($requestParam['classname'], $requestParam['method'], false, 0, 'Permission denied');
     	return $this->sendToClient(Man\Common\Protocols\JsonProtocol::encode('Permission denied'));
     }
     

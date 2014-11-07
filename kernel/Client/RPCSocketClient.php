@@ -102,7 +102,7 @@ class RPCSocketClient
                         'user' => $this->user,
                         'password' => $this->encrypt($this->user, $this->secrect),
                         'timestamp' => microtime(true),
-                        'class' => $this->rpcClass,
+                        'classname' => $this->rpcClass,
                         'method' => $method,
                         'params' => $arguments,
                         ),
