@@ -202,7 +202,7 @@ class User extends \Module\ModuleBase
     public function registerMember($registerData, $phoneId)
     {
         $insertData = array(
-            'phoneid' => isset($registerData['phoneid']) ? $registerData['phoneid'] : '',
+            'phoneid' => $phoneId,
             'username' => $registerData['username'],
             'password' => substr(hash('sha512', self::PASSWORD_KEY . $registerData['password']), 0, 32),
             'open_type' => isset($registerData['open_type']) ? $registerData['open_type'] : 0,
