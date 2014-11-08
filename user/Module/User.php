@@ -66,7 +66,7 @@ class User extends \Module\ModuleBase
     }
     
     /**
-     * 检查注册数据完整性和正确性.
+     * 检查注册数据完整性.
      * 
      * @param array $registerData
      * @throws \Exception\UserException
@@ -74,7 +74,7 @@ class User extends \Module\ModuleBase
      */
     public function checkRegisterData(array $registerData)
     {
-        $theNeedElement = array('username', 'password', 'name', 'sex', 'mobile', 'email', 'provinceid', 'cityid', 'areaid', 'ip');
+        $theNeedElement = array('username', 'password', 'name', 'sex', 'client_platform', 'client_system');
         $checkResult = true;
         $checkResultString = '';        
         foreach ($theNeedElement as $v) {
@@ -82,46 +82,77 @@ class User extends \Module\ModuleBase
                 $checkResult = false;
                 $checkResultString = 'miss element ' . $v;
                 break;
-            } else {
-                switch ($v) {
-                    case 'name' :
-                    case 'username' :
-                        if (! \Helper\Helper::checkUserName($registerData[$v])) {
-                            $checkResult = false;
-                            $checkResultString = 'the ' . $v . ' include illegal character';
-                            break(2);
-                        }
-                        break;
-                    case 'sex' :
-                        if (!ctype_digit($registerData[$v])) {
-                            $checkResult = false;
-                            $checkResultString = 'the ' . $v . ' include illegal character';
-                            break(2);
-                        }
-                        break;
+            }  
+        }
+        if (!$checkResult) {
+            throw new \Exception\UserException($checkResultString);
+        }
+        return true;
+    }
+    
+    /**
+     * 验证数据正确性.
+     * 
+     * @param array $registerData
+     * @throws \Exception\UserException
+     * @return boolean
+     */
+    public function checkRegisterDataIsRight(array $registerData)
+    {
+        $checkResult = true;
+        foreach ($registerData as $key => $data) {
+            switch ($key) {
+                case 'name' :
+                case 'username' :
+                    if (! \Helper\Helper::checkUserName($data)) {
+                        $checkResult = false;
+                        $checkResultString = 'the ' . $key . ' include illegal character';
+                        break(2);
+                    }
+                    break;
+                case 'sex' :
+                    if (!ctype_digit((string)$data)) {
+                        $checkResult = false;
+                        $checkResultString = 'the ' . $key . ' include illegal character';
+                        break(2);
+                    }
+                    break;
                 case 'email' :
-                        if (!\Helper\Helper::checkEmail($registerData[$v])) {
-                            $checkResult = false;
-                            $checkResultString = 'the ' . $v . ' include illegal character';
-                            break(2);
-                        }
-                        break;
-                    case 'ip' :
-                        if (!\Helper\Helper::checkIp($registerData[$v])) {
-                            $checkResult = false;
-                            $checkResultString = 'the ' . $v . ' include illegal character';
-                            break(2);
-                        }
-                        break;
-                    case 'mobile' :
-                        if (!\Helper\Helper::checkMobile($registerData[$v])) {
-                            $checkResult = false;
-                            $checkResultString = 'the ' . $v . ' include illegal character';
-                            break(2);
-                        }
-                        break;
-                }
-            }            
+                    if (!\Helper\Helper::checkEmail($data)) {
+                        $checkResult = false;
+                        $checkResultString = 'the ' . $key . ' include illegal character';
+                        break(2);
+                    }
+                    break;
+                case 'ip' :
+                    if (!\Helper\Helper::checkIp($data)) {
+                        $checkResult = false;
+                        $checkResultString = 'the ' . $key . ' include illegal character';
+                        break(2);
+                    }
+                    break;
+                case 'mobile' :
+                    if (!\Helper\Helper::checkMobile($data)) {
+                        $checkResult = false;
+                        $checkResultString = 'the ' . $key . ' include illegal character';
+                        break(2);
+                    }
+                    break;
+                case 'client_platform' :
+                    if (!ctype_digit((string)$data)) {
+                        $checkResult = false;
+                        $checkResultString = 'the ' . $key . ' include illegal character';
+                        break(2);
+                    }
+                    break;
+                case 'client_system' :
+                    if (!ctype_digit((string)$data)) {
+                        $checkResult = false;
+                        $checkResultString = 'the ' . $key . ' include illegal character';
+                        break(2);
+                    }
+                    break;
+            }
         }
         if (!$checkResult) {
             throw new \Exception\UserException($checkResultString);
@@ -192,6 +223,10 @@ class User extends \Module\ModuleBase
             'update_date' => isset($registerData['update_date']) ?  $registerData['update_date'] : 0,
             'regtime' => isset($registerData['regtime']) ?  $registerData['regtime'] : date('Y-m-d H:i:s'),
             'lastlogintime' => isset($registerData['lastlogintime']) ?  $registerData['lastlogintime'] : 0,
+            'chkstatus' => isset($registerData['chkstatus']) ?  $registerData['chkstatus'] : 0, // 0手机邮箱都未验证，1邮箱已验证，2手机已验证，3均已验证
+            'client_platform' => isset($registerData['client_platform']) ?  $registerData['client_platform'] : 0, // 注册平台
+            'client_system' => isset($registerData['client_system']) ?  $registerData['client_system'] : 0, // 注册系统
+            'create_time' => isset($registerData['create_time']) ?  $registerData['create_time'] : time(), // 发布时间
         );
         try {
             $lastId = \Model\User::instance()->insertMember($insertData);

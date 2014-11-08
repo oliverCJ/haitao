@@ -89,7 +89,7 @@ class RpcTestWork extends Man\Core\SocketWorker
 		if (!empty($_POST)) {
 			$this->processRequest($_POST);
 		} else {
-		    $this->displayHtml('', '');
+		    $this->displayHtml('', '', '');
 		}
 		
 	}
@@ -133,6 +133,12 @@ class RpcTestWork extends Man\Core\SocketWorker
                 global $reqData;
                 $reqData = $data;
             });
+            // 获取网络返回数据
+            global $repData;
+            RPCSocketClient::on('recv', function ($data) {
+                global $repData;
+                $repData = $data;
+            });
             try {
             $call = '\RPCClient_'.$appName.'_'.$class;
             if (is_callable(array($call, 'instance'), true)) {
@@ -145,13 +151,13 @@ class RpcTestWork extends Man\Core\SocketWorker
             } catch (Exception $e) {
             	$response = (string)$e;
             }
-            $this->displayHtml($reqData, $response);
+            $this->displayHtml($reqData, $repData, $response);
             return $response;
 		}
 		return false;
 	}
 	
-	public function displayHtml($reqData, $response)
+	public function displayHtml($reqData, $repData, $response)
 	{		
 	    $response = !is_scalar($response) ? var_export($response, true) : $response;
 		
@@ -193,7 +199,7 @@ HTML;
 			$html .= '</tr><tbody id="parames">';
 			foreach ($_POST['param'] as $v) {
 				$html .= '<tr><td>参数:</td>';
-				$html .= '<td><input name="param[]" type="text" value="' . $v . '" style="width:400px"/> <a href="javascript:void(0)" onclick="delParam(this)">删除本行</a></td>';
+				$html .= '<td><input name="param[]" type="text" value="' . htmlentities($v) . '" style="width:400px"/> <a href="javascript:void(0)" onclick="delParam(this)">删除本行</a></td>';
 				$html .= '</tr>';
 			}
 		} else {
@@ -217,6 +223,11 @@ HTML;
 		if ($reqData) {
 		    $html .= '<b>Request Data: </b>';
 		    $html .= '<textarea style="width:98%;height:120px">'.$reqData.'</textarea>';
+		}
+		
+		if ($repData) {
+		    $html .= '<b>Reponse Data: </b>';
+		    $html .= '<textarea style="width:98%;height:120px">'.$repData.'</textarea>';
 		}
 		
 		$html .= <<<HTML

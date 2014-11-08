@@ -58,7 +58,7 @@ class User
      * @return mixed
      */
     public function memberRegister($registerDataJson, $phoneId = '')
-    {        
+    {     
         if (empty($registerDataJson) ) {
             self::$reponse['REGISTER_DATA_ERROR']['msg'] = sprintf(self::$reponse['REGISTER_DATA_ERROR']['msg'], 'empty register data');
             return \Helper\Helper::reponseData(self::$reponse['REGISTER_DATA_ERROR']);
@@ -71,6 +71,7 @@ class User
         // 检查数据完整性
         try {
             \Module\User::instance()->checkRegisterData($registerData);
+            \Module\User::instance()->checkRegisterDataIsRight($registerData);
         } catch (\Exception\UserException $e) {
             self::$reponse['REGISTER_DATA_ERROR']['msg'] = sprintf(self::$reponse['REGISTER_DATA_ERROR']['msg'], $e->getMessage());
             return \Helper\Helper::reponseData(self::$reponse['REGISTER_DATA_ERROR']);
