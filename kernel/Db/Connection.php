@@ -25,7 +25,7 @@ class Connection
     protected $connect;
     protected $connectCfg;
     protected $allowRealExec;
-    protected $withCache = true;
+    protected $withCache = false; // 这里暂时关闭缓存，因为PDO的连续fetch在到达最后时会返回false
     // null/false:not allow and throw exception; true:allow
     protected $allowGuessConditionOperator = true;
     protected $allowCloseLastStatement = false;
@@ -393,6 +393,7 @@ class Connection
         $sql = $this->getSelectSql();
         $stmt = $this->query($sql);
         $data = $stmt->fetch(\PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
         $this->memoryUsageAfterFetch = microtime(true);
         // TODO 日志
         return $data;
@@ -403,6 +404,7 @@ class Connection
         //return $this->querySimple($sql);
         $stmt = $this->query($sql);
         $data = $stmt->fetch(\PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
         $this->memoryUsageAfterFetch = microtime(true);
         return $data;
     }
@@ -476,7 +478,7 @@ class Connection
         $this->lastSql = $sql;
         // 缓存设置，每次设置后重置缓存，这样下一个query如果没有使用noCache()则仍然可以使用缓存
         $withCache = $this->withCache;
-        $this->withCache = true;
+        //$this->withCache = true;
         
         $sqlcmd = strtoupper(substr($this->lastSql, 0, 6));
         if (in_array($sqlcmd, array('UPDATE', 'DELETE')) && stripos($this->lastSql, 'where') === false) {

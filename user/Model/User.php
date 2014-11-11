@@ -32,6 +32,10 @@ class User extends \Db\DbBase
             'update_date', //int(10) DEFAULT '0' COMMENT '升级日期',
             'regtime', //datetime DEFAULT NULL,
             'lastlogintime', //int(10) DEFAULT NULL,
+            'chkstatus',
+    		'client_platform',
+    		'client_system',
+    		'create_time',
             );
     
     public function getFields()

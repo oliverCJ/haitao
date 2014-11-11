@@ -158,7 +158,13 @@ class RpcTestWork extends Man\Core\SocketWorker
 	}
 	
 	public function displayHtml($reqData, $repData, $response)
-	{		
+	{
+		Man\Common\Protocols\Http\session_start();
+		// 增加显示单独显示json
+		if (!empty($_GET) && $_GET['showjsonlastdata'] = 1) {
+			$this->showJsonData();
+			return true;
+		}		
 	    $response = !is_scalar($response) ? var_export($response, true) : $response;
 		
 		$appname = isset($_POST['appname']) ? $_POST['appname'] : 'apptest';
@@ -226,10 +232,12 @@ HTML;
 		}
 		
 		if ($repData) {
+			$_SESSION['reqData'] = $repData;
 		    $html .= '<b>Reponse Data: </b>';
 		    $html .= '<textarea style="width:98%;height:120px">'.$repData.'</textarea>';
+		    $html .= '<b>Reponse Format Data (NEED JSONVIEW PLUGIN): <a href="http://218.6.173.156:50505/?showjsonlastdata=1" target="_blank">open in new page</a></b>';
+		    $html .= '<iframe style="border:1px solid #cccccc;" frameborder="no" scrolling="yes" width="98%" height="500" src="http://218.6.173.156:50505/?showjsonlastdata=1">你的浏览器不支持<a href="http://218.6.173.156:50505/?showjsonlastdata=1" target="_blank">点击打开新页面</a></iframe>';
 		}
-		
 		$html .= <<<HTML
 <script type="text/javascript">
 		
@@ -246,6 +254,14 @@ HTML;
 HTML;
 		// 发送给客户端
 		return $this->sendToClient(Man\Common\Protocols\Http\http_end($html));
+		return true;
+	}
+	
+	public function showJsonData()
+	{
+		$reqData = isset($_SESSION['reqData']) ? $_SESSION['reqData'] : '';
+		Man\Common\Protocols\Http\header('Content-Type:application/json');
+		return $this->sendToClient(Man\Common\Protocols\Http\http_end($reqData));
 		return true;
 	}
 }
