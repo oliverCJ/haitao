@@ -226,7 +226,7 @@ class User extends \Module\ModuleBase
             'chkstatus' => isset($registerData['chkstatus']) ?  $registerData['chkstatus'] : 0, // 0手机邮箱都未验证，1邮箱已验证，2手机已验证，3均已验证
             'client_platform' => isset($registerData['client_platform']) ?  $registerData['client_platform'] : 0, // 注册平台
             'client_system' => isset($registerData['client_system']) ?  $registerData['client_system'] : 0, // 注册系统
-            'create_time' => isset($registerData['create_time']) ?  $registerData['create_time'] : time(), // 发布时间
+            'create_time' => isset($registerData['create_time']) ?  $registerData['create_time'] : date('Y-m-d H:i:s'), // 发布时间
         );
         try {
             $lastId = \Model\User::instance()->insertMember($insertData);
