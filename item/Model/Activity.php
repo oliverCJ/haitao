@@ -70,4 +70,39 @@ class Activity extends \Db\DbBase
     {
         return $isMaster ? \Db\Connection::instance()->write() : \Db\Connection::instance()->read();
     }
+    
+    /**
+     * 按条件获取特卖.
+     * 
+     * @param unknown_type $cond
+     * @param unknown_type $order
+     * @param unknown_type $field
+     * @return boolean
+     */
+    public function getActivityByCond($cond, $order, $limit = 20, $field = '*')
+    {
+        if (empty($cond) || empty($order)) return false;
+        if ($field == '*') {
+            $field = implode(',', $this->getDb()->quoteObj($this->getFields()));
+        }
+        return $this->getDb()->select($field)->from(self::TABLE_NAME)->where($cond)->order($order)->limit($limit)->queryAll();
+    }
+    
+    /**
+     * 获取特卖商品
+     * 
+     * @param unknown_type $activityId
+     * @param unknown_type $field
+     * @return boolean
+     */
+    public function getProductByCond($cond, $order, $page = 1, $pageSize = '20', $field = '*')
+    {
+        if (empty($cond) || empty($order)) return false;
+        if ($field == '*') {
+            $field = implode(',', $this->getDb()->quoteObj($this->getFieldsProduct()));
+        }
+        $limitStart = ($page - 1) * $pageSize;
+        $limitEnd = $pageSize;
+        return $this->getDb()->select($field)->from(self::TABLE_PRODUCT_NAME)->where($cond)->order($order)->limit($limitStart, $limitEnd)->queryAll();
+    }
 }

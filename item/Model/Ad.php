@@ -66,10 +66,10 @@ class Ad extends \Db\DbBase
      * @param unknown_type $fileld
      * @return boolean
      */
-    public function getAd($cond, $num, $order = '`id` DESC', $fileld = '*')
+    public function getAd($cond, $num, $order = '`id` DESC', $field = '*')
     {
         if (empty($cond) || empty($order) || empty($num)) return false;
-        if ($fileld == '*') {
+        if ($field == '*') {
             $field = implode(',', $this->getDb()->quoteObj($this->getFields()));
         }
         return $this->getDb()->select($field)->from(self::TABLE_NAME)->where($cond)->order($order)->limit($num)->queryAll();
